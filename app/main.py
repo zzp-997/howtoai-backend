@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
 from app.api import api_router
-from app.init_data import create_tables, init_data
+# 注意：在 Vercel Serverless 中，初始化数据应通过单独脚本执行
+# from app.init_data import create_tables, init_data
 from app.schemas.common import ResponseModel
 
 
@@ -86,12 +87,13 @@ app.include_router(api_router, prefix="/api")
 
 
 # ==================== 启动事件 ====================
-
-@app.on_event("startup")
-async def startup_event():
-    """启动时初始化"""
-    await create_tables()
-    await init_data()
+# 注意：在 Vercel Serverless 环境中，不使用 startup 事件
+# 数据库初始化应通过单独脚本执行：python -m app.init_data
+# @app.on_event("startup")
+# async def startup_event():
+#     """启动时初始化"""
+#     await create_tables()
+#     await init_data()
 
 
 # ==================== 健康检查 ====================
