@@ -1,0 +1,61 @@
+schema: spec-driven
+
+# 项目上下文 — 创建工件时展示给 AI 的参考信息
+context: |
+  项目名称：极智协同办公系统后端 API
+
+  技术栈：
+  - 语言：Python 3.11+
+  - 框架：FastAPI 0.115 + Uvicorn
+  - ORM：SQLAlchemy 2.0（async 模式）
+  - 数据库：MySQL 8（通过 aiomysql 异步驱动）
+  - 数据校验：Pydantic v2 + pydantic-settings
+  - 认证：JWT（python-jose + bcrypt）
+  - 部署：Vercel Serverless + GitHub Actions 自动部署
+
+  项目结构约定：
+  - app/api/v1/ — API 路由（按功能模块拆分）
+  - app/models/ — SQLAlchemy 模型（统一在 models.py）
+  - app/schemas/ — Pydantic Schema（按模块拆分）
+  - app/services/ — 业务逻辑层（按模块拆分，继承 BaseService）
+  - app/core/ — 核心配置（config.py, security.py, database.py）
+  - API 前缀：/api/v1/
+
+  编码规范：
+  - Python 代码用 snake_case，API 输出自动转 camelCase（CamelModel）
+  - 统一响应格式：{ code, message, data }（ResponseModel）
+  - 分页格式：{ items, total, page, page_size }（PaginationModel）
+  - Service 层继承 BaseService（Generic CRUD），复杂业务扩展子类方法
+  - 路由函数通过 Depends(get_db) 获取异步数据库会话
+  - 认证通过 Depends(get_current_user) 获取当前用户
+  - 中文注释，英文变量名
+  - Commit message 使用中文
+
+  已有业务模块：
+  - 用户认证与管理（auth, users）
+  - 会议室管理（meeting_rooms, reservations）
+  - 差旅申请（trips, trip_templates, city_configs）
+  - 请假管理（leaves）
+  - 考勤打卡（attendance, make_up_requests, attendance_config）
+  - 待办事项（todos）
+  - 文档管理（documents, document_categories, document_view_logs）
+  - 公告通知（announcements）
+  - 报销管理（expense_claims）
+  - 系统配置（configs, holiday_configs, search_histories, user_preferences）
+
+# 各工件的自定义规则
+rules:
+  proposal:
+    - 提案需明确影响范围（涉及哪些模块、数据库表变更）
+    - 必须包含"非目标"章节，排除不在本次变更内的内容
+    - 若涉及数据库 Schema 变更，需标注是否需要数据迁移
+  design:
+    - 设计需遵循现有分层架构：Router → Service → Model/Schema
+    - 新增模块需说明路由注册方式（在 app/api/v1/__init__.py 中注册）
+    - 如需新增数据库表，说明表结构与已有表的关系
+    - API 设计需符合统一响应格式（ResponseModel / PaginationModel）
+  tasks:
+    - 每个任务的代码变更应聚焦于单一文件或紧密相关的文件组
+    - 数据库变更（新增表/字段）单独作为一个任务，优先执行
+    - 新增 API 路由需包含对应 Schema 定义和 Service 方法
+    - 任务顺序：Model → Schema → Service → Router → 注册路由
