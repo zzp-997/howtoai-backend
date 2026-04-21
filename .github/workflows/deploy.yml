@@ -15,6 +15,14 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: 获取版本信息
+        id: version
+        run: |
+          echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "commit_msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+          echo "deploy_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "deployer=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
+
       - name: 检查 SQL 迁移文件变更
         id: sql-check
         run: |
@@ -47,6 +55,14 @@ jobs:
             cp /root/howtoai-backend/Dockerfile /opt/howtoai/backend/
             cp /root/howtoai-backend/deploy/backend/.env.prod /opt/howtoai/backend/
 
+            # 写入版本信息
+            cat > /opt/howtoai/backend/VERSION <<EOF
+            commit: ${{ steps.version.outputs.commit_hash }}
+            message: ${{ steps.version.outputs.commit_msg }}
+            deploy_time: ${{ steps.version.outputs.deploy_time }}
+            deployer: ${{ steps.version.outputs.deployer }}
+            EOF
+
             # 重新构建并启动
             echo "🔨 构建后端容器..."
             docker compose up -d --build backend
@@ -74,11 +90,9 @@ jobs:
             echo "📊 执行数据库迁移..."
             cd /opt/howtoai
 
-            # 同步迁移脚本
             cp /root/howtoai-backend/scripts/migrate.sh /opt/howtoai/scripts/
             cp /root/howtoai-backend/sql/migrations/* /opt/howtoai/sql/migrations/ 2>/dev/null || true
 
-            # 执行迁移
             bash /opt/howtoai/scripts/migrate.sh
 
       - name: 健康检查

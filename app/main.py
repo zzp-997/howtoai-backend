@@ -1,14 +1,14 @@
 """
 极智协同 FastAPI 后端
 """
+import os
+from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
 from app.api import api_router
-# 注意：在 Vercel Serverless 中，初始化数据应通过单独脚本执行
-# from app.init_data import create_tables, init_data
 from app.schemas.common import ResponseModel
 
 
@@ -116,3 +116,31 @@ async def root():
 async def health():
     """健康检查"""
     return ResponseModel(code=200, message="success", data={"status": "healthy"})
+
+
+@app.get("/version")
+async def version():
+    """获取部署版本信息"""
+    version_info = {
+        "app_version": settings.APP_VERSION,
+        "commit": "unknown",
+        "message": "",
+        "deploy_time": "",
+        "deployer": ""
+    }
+
+    # 读取 VERSION 文件
+    version_file = Path(__file__).parent.parent / "VERSION"
+    if version_file.exists():
+        try:
+            content = version_file.read_text(encoding="utf-8")
+            for line in content.strip().split("\n"):
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip().replace(" ", "_")
+                    if key in version_info:
+                        version_info[key] = value.strip()
+        except Exception:
+            pass
+
+    return ResponseModel(code=200, message="success", data=version_info)
