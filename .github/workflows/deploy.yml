@@ -5,6 +5,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,8 +15,6 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: 获取版本信息
         id: version
@@ -23,89 +24,43 @@ jobs:
           echo "deploy_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
           echo "deployer=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
 
-      - name: 检查 SQL 迁移文件变更
-        id: sql-check
-        run: |
-          if git diff --name-only HEAD~1 HEAD | grep -q "sql/migrations/"; then
-            echo "sql_changed=true" >> $GITHUB_OUTPUT
-            echo "📋 检测到数据库迁移文件变更"
-            git diff --name-only HEAD~1 HEAD | grep "sql/migrations/"
-          else
-            echo "sql_changed=false" >> $GITHUB_OUTPUT
-            echo "✅ 无数据库迁移变更"
-          fi
-
-      - name: 部署后端到服务器
+      - name: 部署到服务器
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
+          command_timeout: 10m
           script: |
+            set -e
             echo "🚀 开始部署后端..."
-            cd /opt/howtoai
 
             # 拉取最新代码
-            echo "📥 拉取最新代码..."
+            echo "📥 拉取代码..."
             cd /root/howtoai-backend && git pull origin master
 
-            # 同步代码到部署目录
-            rsync -av --exclude='.git' --exclude='__pycache__' /root/howtoai-backend/app/ /opt/howtoai/backend/app/
+            # 同步代码
+            echo "📦 同步代码..."
+            rsync -av --exclude='.git' --exclude='__pycache__' --exclude='.env' \
+              /root/howtoai-backend/app/ /opt/howtoai/backend/app/
             cp /root/howtoai-backend/requirements.txt /opt/howtoai/backend/
             cp /root/howtoai-backend/Dockerfile /opt/howtoai/backend/
-            cp /root/howtoai-backend/deploy/backend/.env.prod /opt/howtoai/backend/
 
             # 写入版本信息
-            cat > /opt/howtoai/backend/VERSION <<EOF
-            commit: ${{ steps.version.outputs.commit_hash }}
-            message: ${{ steps.version.outputs.commit_msg }}
-            deploy_time: ${{ steps.version.outputs.deploy_time }}
-            deployer: ${{ steps.version.outputs.deployer }}
-            EOF
+            echo "📝 写入版本信息..."
+            echo "commit: ${{ steps.version.outputs.commit_hash }}" > /opt/howtoai/backend/VERSION
+            echo "message: ${{ steps.version.outputs.commit_msg }}" >> /opt/howtoai/backend/VERSION
+            echo "deploy_time: ${{ steps.version.outputs.deploy_time }}" >> /opt/howtoai/backend/VERSION
+            echo "deployer: ${{ steps.version.outputs.deployer }}" >> /opt/howtoai/backend/VERSION
 
-            # 重新构建并启动
-            echo "🔨 构建后端容器..."
+            # 构建并启动
+            echo "🔨 构建容器..."
+            cd /opt/howtoai
             docker compose up -d --build backend
 
-            # 等待容器启动
-            sleep 10
+            # 等待启动
+            sleep 15
 
-            # 检查容器状态
-            if docker compose ps backend | grep -q "Up"; then
-              echo "✅ 后端部署成功"
-            else
-              echo "❌ 后端部署失败"
-              docker compose logs backend --tail 50
-              exit 1
-            fi
-
-      - name: 执行数据库迁移
-        if: steps.sql-check.outputs.sql_changed == 'true'
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            echo "📊 执行数据库迁移..."
-            cd /opt/howtoai
-
-            cp /root/howtoai-backend/scripts/migrate.sh /opt/howtoai/scripts/
-            cp /root/howtoai-backend/sql/migrations/* /opt/howtoai/sql/migrations/ 2>/dev/null || true
-
-            bash /opt/howtoai/scripts/migrate.sh
-
-      - name: 健康检查
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            response=$(curl -s https://admin.coderzzp.top/health)
-            if echo "$response" | grep -q "healthy"; then
-              echo "✅ 服务健康"
-            else
-              echo "❌ 健康检查失败: $response"
-              exit 1
-            fi
+            # 健康检查
+            echo "🏥 健康检查..."
+            curl -s https://admin.coderzzp.top/health | grep -q "healthy" && echo "✅ 部署成功" || exit 1
