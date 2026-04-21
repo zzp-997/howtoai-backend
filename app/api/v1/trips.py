@@ -61,7 +61,7 @@ async def create_trip(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """创建差旅申请"""
-    trip = await trip_service.create(db, {**data.model_dump(), "userId": current_user.id})
+    trip = await trip_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=trip)
 
 
@@ -76,12 +76,12 @@ async def update_trip(
     trip = await trip_service.get_by_id(db, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="差旅申请不存在")
-    if trip.userId != current_user.id:
+    if trip.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if trip.status != "pending":
         raise HTTPException(status_code=400, detail="只能修改待审批的申请")
 
-    updated = await trip_service.update(db, trip_id, data.model_dump(exclude_unset=True))
+    updated = await trip_service.update(db, trip_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
 
@@ -112,7 +112,7 @@ async def delete_trip(
     trip = await trip_service.get_by_id(db, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="差旅申请不存在")
-    if trip.userId != current_user.id:
+    if trip.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if trip.status == "approved":
         raise HTTPException(status_code=400, detail="已通过的申请不能删除")

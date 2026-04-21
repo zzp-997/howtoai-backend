@@ -2,19 +2,20 @@
 公告通知相关 Schema
 """
 import json
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class AnnouncementBase(BaseModel):
+class AnnouncementBase(CamelModel):
     """公告基础"""
     title: str
     content: str
     summary: Optional[str] = None
     category: str = "notice"  # policy/activity/notice
-    isTop: bool = False
-    isRemind: bool = False
+    is_top: bool = False
+    is_remind: bool = False
 
 
 class AnnouncementCreate(AnnouncementBase):
@@ -22,28 +23,28 @@ class AnnouncementCreate(AnnouncementBase):
     pass
 
 
-class AnnouncementUpdate(BaseModel):
+class AnnouncementUpdate(CamelModel):
     """更新公告"""
     title: Optional[str] = None
     content: Optional[str] = None
     summary: Optional[str] = None
     category: Optional[str] = None
-    isTop: Optional[bool] = None
-    isRemind: Optional[bool] = None
+    is_top: Optional[bool] = None
+    is_remind: Optional[bool] = None
 
 
 class AnnouncementResponse(AnnouncementBase):
     """公告响应"""
     id: int
-    categoryLabel: Optional[str] = None
-    publishTime: Optional[datetime] = None
-    readBy: List[int] = []
-    createdAt: Optional[datetime] = None
+    category_label: Optional[str] = None
+    publish_time: Optional[datetime] = None
+    read_by: List[int] = []
+    created_at: Optional[datetime] = None
 
-    @field_validator('readBy', mode='before')
+    @field_validator('read_by', mode='before')
     @classmethod
     def parse_read_by(cls, v):
-        """解析 readBy 字段，支持 JSON 字符串"""
+        """解析 read_by 字段，支持 JSON 字符串"""
         if v is None:
             return []
         if isinstance(v, list):
@@ -55,5 +56,3 @@ class AnnouncementResponse(AnnouncementBase):
             except:
                 return []
         return []
-
-    model_config = {'from_attributes': True}

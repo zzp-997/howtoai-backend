@@ -25,7 +25,6 @@ async def init_data():
         print("开始初始化数据...")
 
         # 创建用户
-        # 使用 bcrypt 直接生成密码哈希
         admin_password = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
         user_password = bcrypt.hashpw("123456".encode(), bcrypt.gensalt()).decode()
 
@@ -37,8 +36,8 @@ async def init_data():
                 role="admin",
                 department="技术部",
                 position="系统管理员",
-                annualLeaveBalance=15,
-                sickLeaveBalance=10
+                annual_leave_balance=15,
+                sick_leave_balance=10
             ),
             User(
                 username="zhangsan",
@@ -47,8 +46,8 @@ async def init_data():
                 role="user",
                 department="研发部",
                 position="工程师",
-                annualLeaveBalance=10,
-                sickLeaveBalance=5
+                annual_leave_balance=10,
+                sick_leave_balance=5
             ),
             User(
                 username="lisi",
@@ -57,8 +56,8 @@ async def init_data():
                 role="user",
                 department="产品部",
                 position="产品经理",
-                annualLeaveBalance=8,
-                sickLeaveBalance=3
+                annual_leave_balance=8,
+                sick_leave_balance=3
             )
         ]
 
@@ -100,18 +99,18 @@ async def init_data():
                 content="根据国家法定节假日安排，公司春节放假时间为2026年1月28日至2月3日，共7天。请各部门提前做好工作安排。",
                 summary="春节放假安排",
                 category="notice",
-                categoryLabel="通知",
-                isTop=True,
-                publishTime=datetime.now()
+                category_label="通知",
+                is_top=True,
+                publish_time=datetime.now()
             ),
             Announcement(
                 title="2026年度培训计划",
                 content="为提升员工专业技能，公司将于2026年开展系列培训活动，包括技术培训、管理培训等，具体安排另行通知。",
                 summary="年度培训计划",
                 category="activity",
-                categoryLabel="活动",
-                isTop=False,
-                publishTime=datetime.now()
+                category_label="活动",
+                is_top=False,
+                publish_time=datetime.now()
             )
         ]
 
@@ -130,16 +129,16 @@ async def init_data():
 
         # 创建城市配置
         cities = [
-            CityConfig(name="北京", province="北京", transportFeeBase=800, accomFeeBase=400),
-            CityConfig(name="上海", province="上海", transportFeeBase=1000, accomFeeBase=450),
-            CityConfig(name="广州", province="广东", transportFeeBase=1200, accomFeeBase=350),
-            CityConfig(name="深圳", province="广东", transportFeeBase=1200, accomFeeBase=380),
-            CityConfig(name="杭州", province="浙江", transportFeeBase=800, accomFeeBase=350),
-            CityConfig(name="南京", province="江苏", transportFeeBase=700, accomFeeBase=300),
-            CityConfig(name="成都", province="四川", transportFeeBase=1500, accomFeeBase=280),
-            CityConfig(name="武汉", province="湖北", transportFeeBase=600, accomFeeBase=250),
-            CityConfig(name="西安", province="陕西", transportFeeBase=1000, accomFeeBase=280),
-            CityConfig(name="重庆", province="重庆", transportFeeBase=1400, accomFeeBase=300),
+            CityConfig(name="北京", province="北京", transport_fee_base=800, accom_fee_base=400),
+            CityConfig(name="上海", province="上海", transport_fee_base=1000, accom_fee_base=450),
+            CityConfig(name="广州", province="广东", transport_fee_base=1200, accom_fee_base=350),
+            CityConfig(name="深圳", province="广东", transport_fee_base=1200, accom_fee_base=380),
+            CityConfig(name="杭州", province="浙江", transport_fee_base=800, accom_fee_base=350),
+            CityConfig(name="南京", province="江苏", transport_fee_base=700, accom_fee_base=300),
+            CityConfig(name="成都", province="四川", transport_fee_base=1500, accom_fee_base=280),
+            CityConfig(name="武汉", province="湖北", transport_fee_base=600, accom_fee_base=250),
+            CityConfig(name="西安", province="陕西", transport_fee_base=1000, accom_fee_base=280),
+            CityConfig(name="重庆", province="重庆", transport_fee_base=1400, accom_fee_base=300),
         ]
         for city in cities:
             db.add(city)
@@ -150,7 +149,7 @@ async def init_data():
             HolidayConfig(name="元旦", date="2026-01-01", type="holiday"),
             HolidayConfig(name="元旦", date="2026-01-02", type="holiday"),
             HolidayConfig(name="元旦", date="2026-01-03", type="holiday"),
-            # 春节（假设2月7日开始）
+            # 春节
             HolidayConfig(name="春节", date="2026-02-07", type="holiday"),
             HolidayConfig(name="春节", date="2026-02-08", type="holiday"),
             HolidayConfig(name="春节", date="2026-02-09", type="holiday"),

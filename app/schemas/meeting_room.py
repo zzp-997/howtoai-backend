@@ -2,12 +2,13 @@
 会议室相关 Schema
 """
 import json
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class MeetingRoomBase(BaseModel):
+class MeetingRoomBase(CamelModel):
     """会议室基础"""
     name: str
     capacity: int = 10
@@ -21,21 +22,21 @@ class MeetingRoomCreate(MeetingRoomBase):
     pass
 
 
-class MeetingRoomUpdate(BaseModel):
+class MeetingRoomUpdate(CamelModel):
     """更新会议室"""
     name: Optional[str] = None
     capacity: Optional[int] = None
     location: Optional[str] = None
     equipment: Optional[List[str]] = None
     description: Optional[str] = None
-    isActive: Optional[bool] = None
+    is_active: Optional[bool] = None
 
 
 class MeetingRoomResponse(MeetingRoomBase):
     """会议室响应"""
     id: int
-    isActive: bool = True
-    createdAt: Optional[datetime] = None
+    is_active: bool = True
+    created_at: Optional[datetime] = None
 
     @field_validator('equipment', mode='before')
     @classmethod
@@ -51,6 +52,3 @@ class MeetingRoomResponse(MeetingRoomBase):
             except:
                 return []
         return []
-
-    class Config:
-        from_attributes = True

@@ -4,16 +4,17 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class TripBase(BaseModel):
+class TripBase(CamelModel):
     """差旅基础"""
     destination: str
     reason: Optional[str] = None
-    startDate: str  # YYYY-MM-DD
-    endDate: str
-    estTransportFee: float = 0
-    estAccomFee: float = 0
+    start_date: str  # YYYY-MM-DD
+    end_date: str
+    est_transport_fee: float = 0
+    est_accom_fee: float = 0
 
 
 class TripCreate(TripBase):
@@ -21,14 +22,14 @@ class TripCreate(TripBase):
     pass
 
 
-class TripUpdate(BaseModel):
+class TripUpdate(CamelModel):
     """更新差旅申请"""
     destination: Optional[str] = None
     reason: Optional[str] = None
-    startDate: Optional[str] = None
-    endDate: Optional[str] = None
-    estTransportFee: Optional[float] = None
-    estAccomFee: Optional[float] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    est_transport_fee: Optional[float] = None
+    est_accom_fee: Optional[float] = None
 
 
 class TripApprove(BaseModel):
@@ -40,12 +41,9 @@ class TripApprove(BaseModel):
 class TripResponse(TripBase):
     """差旅申请响应"""
     id: int
-    userId: int
+    user_id: int
     status: str = "pending"
-    approvalComment: Optional[str] = None
-    approvedBy: Optional[int] = None
-    approvedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    approval_comment: Optional[str] = None
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None

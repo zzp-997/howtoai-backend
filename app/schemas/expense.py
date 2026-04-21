@@ -2,12 +2,13 @@
 报销单相关 Schema
 """
 import json
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class ExpenseItem(BaseModel):
+class ExpenseItem(CamelModel):
     """费用明细项"""
     category: str  # 交通/住宿/餐饮/其他
     estimated: float = 0
@@ -15,12 +16,12 @@ class ExpenseItem(BaseModel):
     description: Optional[str] = None
 
 
-class ExpenseClaimBase(BaseModel):
+class ExpenseClaimBase(CamelModel):
     """报销单基础"""
-    tripId: Optional[int] = None
+    trip_id: Optional[int] = None
     expenses: List[ExpenseItem] = []
-    totalEstimated: float = 0
-    totalActual: float = 0
+    total_estimated: float = 0
+    total_actual: float = 0
 
 
 class ExpenseClaimCreate(ExpenseClaimBase):
@@ -28,23 +29,23 @@ class ExpenseClaimCreate(ExpenseClaimBase):
     pass
 
 
-class ExpenseClaimUpdate(BaseModel):
+class ExpenseClaimUpdate(CamelModel):
     """更新报销单"""
     expenses: Optional[List[ExpenseItem]] = None
-    totalEstimated: Optional[float] = None
-    totalActual: Optional[float] = None
+    total_estimated: Optional[float] = None
+    total_actual: Optional[float] = None
 
 
 class ExpenseClaimResponse(ExpenseClaimBase):
     """报销单响应"""
     id: int
-    userId: int
+    user_id: int
     status: str = "draft"
-    submittedAt: Optional[datetime] = None
-    approvedBy: Optional[int] = None
-    approvedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-    updatedAt: Optional[datetime] = None
+    submitted_at: Optional[datetime] = None
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     @field_validator('expenses', mode='before')
     @classmethod
@@ -60,6 +61,3 @@ class ExpenseClaimResponse(ExpenseClaimBase):
             except:
                 return []
         return []
-
-    class Config:
-        from_attributes = True

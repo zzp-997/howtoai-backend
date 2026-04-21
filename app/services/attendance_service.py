@@ -18,7 +18,7 @@ class AttendanceService(BaseService[Attendance]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[Attendance]:
         """查询用户考勤记录"""
         result = await db.execute(
-            select(Attendance).where(Attendance.userId == user_id).order_by(Attendance.date.desc())
+            select(Attendance).where(Attendance.user_id == user_id).order_by(Attendance.date.desc())
         )
         return result.scalars().all()
 
@@ -26,7 +26,7 @@ class AttendanceService(BaseService[Attendance]):
         """查询用户指定日期的记录"""
         result = await db.execute(
             select(Attendance).where(
-                and_(Attendance.userId == user_id, Attendance.date == date)
+                and_(Attendance.user_id == user_id, Attendance.date == date)
             )
         )
         return result.scalar_one_or_none()
@@ -35,7 +35,7 @@ class AttendanceService(BaseService[Attendance]):
         """查询用户指定月份的记录"""
         result = await db.execute(
             select(Attendance).where(
-                Attendance.userId == user_id,
+                Attendance.user_id == user_id,
                 Attendance.date.like(f"{month}%")
             ).order_by(Attendance.date)
         )
@@ -47,19 +47,19 @@ class AttendanceService(BaseService[Attendance]):
         now = datetime.now().strftime("%H:%M")
 
         existing = await self.find_by_user_and_date(db, user_id, today)
-        if existing and existing.checkInTime:
+        if existing and existing.check_in_time:
             raise ValueError("今日已上班打卡")
 
         is_late = now > work_start
 
         if existing:
-            return await self.update(db, existing.id, {"checkInTime": now, "isLate": is_late})
+            return await self.update(db, existing.id, {"check_in_time": now, "is_late": is_late})
         else:
             return await self.create(db, {
-                "userId": user_id,
+                "user_id": user_id,
                 "date": today,
-                "checkInTime": now,
-                "isLate": is_late,
+                "check_in_time": now,
+                "is_late": is_late,
                 "status": "normal"
             })
 
@@ -71,12 +71,12 @@ class AttendanceService(BaseService[Attendance]):
         existing = await self.find_by_user_and_date(db, user_id, today)
         if not existing:
             raise ValueError("请先上班打卡")
-        if existing.checkOutTime:
+        if existing.check_out_time:
             raise ValueError("今日已下班打卡")
 
         is_early = now < work_end
 
-        return await self.update(db, existing.id, {"checkOutTime": now, "isEarlyLeave": is_early})
+        return await self.update(db, existing.id, {"check_out_time": now, "is_early_leave": is_early})
 
     async def get_monthly_stats(self, db: AsyncSession, user_id: int, month: str) -> dict:
         """获取用户本月统计"""
@@ -84,10 +84,10 @@ class AttendanceService(BaseService[Attendance]):
 
         return {
             "total": len(records),
-            "normal": len([r for r in records if r.checkInTime and r.checkOutTime and not r.isLate]),
-            "late": len([r for r in records if r.isLate]),
-            "missingCheckIn": len([r for r in records if not r.checkInTime]),
-            "missingCheckOut": len([r for r in records if not r.checkOutTime])
+            "normal": len([r for r in records if r.check_in_time and r.check_out_time and not r.is_late]),
+            "late": len([r for r in records if r.is_late]),
+            "missingCheckIn": len([r for r in records if not r.check_in_time]),
+            "missingCheckOut": len([r for r in records if not r.check_out_time])
         }
 
 
@@ -100,14 +100,14 @@ class MakeUpRequestService(BaseService[MakeUpRequest]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[MakeUpRequest]:
         """查询用户补卡申请"""
         result = await db.execute(
-            select(MakeUpRequest).where(MakeUpRequest.userId == user_id).order_by(MakeUpRequest.createdAt.desc())
+            select(MakeUpRequest).where(MakeUpRequest.user_id == user_id).order_by(MakeUpRequest.created_at.desc())
         )
         return result.scalars().all()
 
     async def find_pending(self, db: AsyncSession) -> List[MakeUpRequest]:
         """查询待审批"""
         result = await db.execute(
-            select(MakeUpRequest).where(MakeUpRequest.status == "pending").order_by(MakeUpRequest.createdAt.desc())
+            select(MakeUpRequest).where(MakeUpRequest.status == "pending").order_by(MakeUpRequest.created_at.desc())
         )
         return result.scalars().all()
 
@@ -115,8 +115,8 @@ class MakeUpRequestService(BaseService[MakeUpRequest]):
         """审批补卡申请"""
         return await self.update(db, id, {
             "status": "approved" if approved else "rejected",
-            "approvedBy": approver_id,
-            "approvedAt": datetime.now()
+            "approved_by": approver_id,
+            "approved_at": datetime.now()
         })
 
 

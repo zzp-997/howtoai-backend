@@ -4,11 +4,12 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
 # ==================== 考勤配置 ====================
 
-class AttendanceConfigBase(BaseModel):
+class AttendanceConfigBase(CamelModel):
     key: str
     value: str
 
@@ -22,101 +23,91 @@ class AttendanceConfigUpdate(BaseModel):
 
 
 class AttendanceConfigResponse(AttendanceConfigBase):
-    class Config:
-        from_attributes = True
+    pass
 
 
 # ==================== 用户偏好 ====================
 
-class UserPreferenceBase(BaseModel):
+class UserPreferenceBase(CamelModel):
     theme: str = "light"
     language: str = "zh"
-    notificationsEnabled: bool = True
+    notifications_enabled: bool = True
 
 
 class UserPreferenceCreate(UserPreferenceBase):
-    userId: int
+    user_id: int
 
 
-class UserPreferenceUpdate(BaseModel):
+class UserPreferenceUpdate(CamelModel):
     theme: Optional[str] = None
     language: Optional[str] = None
-    notificationsEnabled: Optional[bool] = None
+    notifications_enabled: Optional[bool] = None
 
 
 class UserPreferenceResponse(UserPreferenceBase):
     id: int
-    userId: int
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    user_id: int
+    created_at: Optional[datetime] = None
 
 
 # ==================== 出差模板 ====================
 
-class TripTemplateBase(BaseModel):
+class TripTemplateBase(CamelModel):
     name: str
     destination: Optional[str] = None
     reason: Optional[str] = None
-    estTransportFee: float = 0
-    estAccomFee: float = 0
+    est_transport_fee: float = 0
+    est_accom_fee: float = 0
 
 
 class TripTemplateCreate(TripTemplateBase):
-    userId: int
+    user_id: int
 
 
-class TripTemplateUpdate(BaseModel):
+class TripTemplateUpdate(CamelModel):
     name: Optional[str] = None
     destination: Optional[str] = None
     reason: Optional[str] = None
-    estTransportFee: Optional[float] = None
-    estAccomFee: Optional[float] = None
+    est_transport_fee: Optional[float] = None
+    est_accom_fee: Optional[float] = None
 
 
 class TripTemplateResponse(TripTemplateBase):
     id: int
-    userId: int
-    useCount: int = 0
-    lastUsedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    user_id: int
+    use_count: int = 0
+    last_used_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 
 # ==================== 城市配置 ====================
 
-class CityConfigBase(BaseModel):
+class CityConfigBase(CamelModel):
     name: str
     province: Optional[str] = None
-    transportFeeBase: float = 0
-    accomFeeBase: float = 0
+    transport_fee_base: float = 0
+    accom_fee_base: float = 0
 
 
 class CityConfigCreate(CityConfigBase):
     pass
 
 
-class CityConfigUpdate(BaseModel):
+class CityConfigUpdate(CamelModel):
     name: Optional[str] = None
     province: Optional[str] = None
-    transportFeeBase: Optional[float] = None
-    accomFeeBase: Optional[float] = None
+    transport_fee_base: Optional[float] = None
+    accom_fee_base: Optional[float] = None
 
 
 class CityConfigResponse(CityConfigBase):
     id: int
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None
 
 
 # ==================== 节假日配置 ====================
 
-class HolidayConfigBase(BaseModel):
+class HolidayConfigBase(CamelModel):
     name: str
     date: str  # YYYY-MM-DD
     type: str = "holiday"  # holiday/workday
@@ -126,7 +117,7 @@ class HolidayConfigCreate(HolidayConfigBase):
     pass
 
 
-class HolidayConfigUpdate(BaseModel):
+class HolidayConfigUpdate(CamelModel):
     name: Optional[str] = None
     date: Optional[str] = None
     type: Optional[str] = None
@@ -134,7 +125,4 @@ class HolidayConfigUpdate(BaseModel):
 
 class HolidayConfigResponse(HolidayConfigBase):
     id: int
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None

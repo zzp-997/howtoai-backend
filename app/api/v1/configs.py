@@ -68,7 +68,7 @@ async def update_user_preference(
 ):
     """更新用户偏好"""
     pref = await user_preference_service.get_or_create(db, current_user.id)
-    updated = await user_preference_service.update(db, pref.id, data.model_dump(exclude_unset=True))
+    updated = await user_preference_service.update(db, pref.id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated, message="更新成功")
 
 
@@ -91,7 +91,7 @@ async def create_trip_template(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """创建出差模板"""
-    template = await trip_template_service.create(db, {**data.model_dump(), "userId": current_user.id})
+    template = await trip_template_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=template)
 
 
@@ -106,9 +106,9 @@ async def update_trip_template(
     template = await trip_template_service.get_by_id(db, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="模板不存在")
-    if template.userId != current_user.id:
+    if template.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
-    updated = await trip_template_service.update(db, template_id, data.model_dump(exclude_unset=True))
+    updated = await trip_template_service.update(db, template_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
 
@@ -122,7 +122,7 @@ async def delete_trip_template(
     template = await trip_template_service.get_by_id(db, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="模板不存在")
-    if template.userId != current_user.id:
+    if template.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     await trip_template_service.delete(db, template_id)
     return ResponseModel(message="删除成功")
@@ -166,7 +166,7 @@ async def create_city_config(
     """创建城市配置（管理员）"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
-    city = await city_config_service.create(db, data.model_dump())
+    city = await city_config_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=city)
 
 
@@ -180,7 +180,7 @@ async def update_city_config(
     """更新城市配置（管理员）"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
-    city = await city_config_service.update(db, city_id, data.model_dump(exclude_unset=True))
+    city = await city_config_service.update(db, city_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not city:
         raise HTTPException(status_code=404, detail="城市不存在")
     return ResponseModel(data=city)
@@ -244,7 +244,7 @@ async def create_holiday_config(
     """创建节假日配置（管理员）"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
-    holiday = await holiday_config_service.create(db, data.model_dump())
+    holiday = await holiday_config_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=holiday)
 
 
@@ -258,7 +258,7 @@ async def update_holiday_config(
     """更新节假日配置（管理员）"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
-    holiday = await holiday_config_service.update(db, holiday_id, data.model_dump(exclude_unset=True))
+    holiday = await holiday_config_service.update(db, holiday_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not holiday:
         raise HTTPException(status_code=404, detail="节假日配置不存在")
     return ResponseModel(data=holiday)

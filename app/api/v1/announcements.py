@@ -86,8 +86,8 @@ async def create_announcement(
 
     from datetime import datetime
     announcement = await announcement_service.create(db, {
-        **data.model_dump(),
-        "publishTime": datetime.now()
+        **data.model_dump(by_alias=False),
+        "publish_time": datetime.now()
     })
     return ResponseModel(data=announcement)
 
@@ -103,7 +103,7 @@ async def update_announcement(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
 
-    announcement = await announcement_service.update(db, announcement_id, data.model_dump(exclude_unset=True))
+    announcement = await announcement_service.update(db, announcement_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not announcement:
         raise HTTPException(status_code=404, detail="公告不存在")
     return ResponseModel(data=announcement)

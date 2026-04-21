@@ -62,11 +62,11 @@ async def create_leave(
 ):
     """创建请假申请"""
     # 检查日期重叠
-    overlap = await leave_service.check_overlap(db, current_user.id, data.startDate, data.endDate)
+    overlap = await leave_service.check_overlap(db, current_user.id, data.start_date, data.end_date)
     if overlap:
         raise HTTPException(status_code=400, detail=f"日期与已存在的请假申请重叠")
 
-    leave = await leave_service.create(db, {**data.model_dump(), "userId": current_user.id})
+    leave = await leave_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=leave)
 
 
@@ -81,19 +81,19 @@ async def update_leave(
     leave = await leave_service.get_by_id(db, leave_id)
     if not leave:
         raise HTTPException(status_code=404, detail="请假申请不存在")
-    if leave.userId != current_user.id:
+    if leave.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if leave.status != "pending":
         raise HTTPException(status_code=400, detail="只能修改待审批的申请")
 
     # 检查日期重叠
-    start = data.startDate or leave.startDate
-    end = data.endDate or leave.endDate
+    start = data.start_date or leave.start_date
+    end = data.end_date or leave.end_date
     overlap = await leave_service.check_overlap(db, current_user.id, start, end, leave_id)
     if overlap:
         raise HTTPException(status_code=400, detail="日期与已存在的请假申请重叠")
 
-    updated = await leave_service.update(db, leave_id, data.model_dump(exclude_unset=True))
+    updated = await leave_service.update(db, leave_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
 
@@ -124,7 +124,7 @@ async def delete_leave(
     leave = await leave_service.get_by_id(db, leave_id)
     if not leave:
         raise HTTPException(status_code=404, detail="请假申请不存在")
-    if leave.userId != current_user.id:
+    if leave.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if leave.status == "approved":
         raise HTTPException(status_code=400, detail="已通过的申请不能删除")

@@ -32,7 +32,7 @@ class MeetingRoomService(BaseService[MeetingRoom]):
     async def get_active_rooms(self, db: AsyncSession) -> List[MeetingRoom]:
         """获取所有启用的会议室"""
         result = await db.execute(
-            select(MeetingRoom).where(MeetingRoom.isActive == True)
+            select(MeetingRoom).where(MeetingRoom.is_active == True)
         )
         return result.scalars().all()
 

@@ -1,7 +1,7 @@
 """
 Schema 导出
 """
-from app.schemas.common import ResponseModel, PaginationModel
+from app.schemas.common import ResponseModel, PaginationModel, CamelModel
 from app.schemas.user import (
     UserBase, UserCreate, UserUpdate, UserResponse,
     LoginRequest, LoginResponse, LoginData, TokenData

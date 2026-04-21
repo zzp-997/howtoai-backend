@@ -2,12 +2,13 @@
 文档相关 Schema
 """
 import json
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class DocumentCategoryBase(BaseModel):
+class DocumentCategoryBase(CamelModel):
     """文档分类基础"""
     name: str
     description: Optional[str] = None
@@ -21,15 +22,12 @@ class DocumentCategoryCreate(DocumentCategoryBase):
 class DocumentCategoryResponse(DocumentCategoryBase):
     """文档分类响应"""
     id: int
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None
 
 
-class DocumentBase(BaseModel):
+class DocumentBase(CamelModel):
     """文档基础"""
-    categoryId: Optional[int] = None
+    category_id: Optional[int] = None
     name: str
     description: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -37,17 +35,17 @@ class DocumentBase(BaseModel):
 
 class DocumentCreate(DocumentBase):
     """创建文档"""
-    fileSize: Optional[int] = None
-    fileType: Optional[str] = None
+    file_size: Optional[int] = None
+    file_type: Optional[str] = None
 
 
 class DocumentResponse(DocumentBase):
     """文档响应"""
     id: int
-    fileSize: Optional[int] = None
-    fileType: Optional[str] = None
-    uploadBy: Optional[int] = None
-    createdAt: Optional[datetime] = None
+    file_size: Optional[int] = None
+    file_type: Optional[str] = None
+    upload_by: Optional[int] = None
+    created_at: Optional[datetime] = None
 
     @field_validator('tags', mode='before')
     @classmethod
@@ -63,6 +61,3 @@ class DocumentResponse(DocumentBase):
             except:
                 return []
         return []
-
-    class Config:
-        from_attributes = True

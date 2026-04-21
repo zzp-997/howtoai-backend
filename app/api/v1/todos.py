@@ -57,7 +57,7 @@ async def get_todo(
 ):
     """获取待办详情"""
     todo = await todo_service.get_by_id(db, todo_id)
-    if not todo or todo.userId != current_user.id:
+    if not todo or todo.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="待办不存在")
     return ResponseModel(data=todo)
 
@@ -69,7 +69,7 @@ async def create_todo(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """创建待办"""
-    todo = await todo_service.create(db, {**data.model_dump(), "userId": current_user.id})
+    todo = await todo_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=todo)
 
 
@@ -82,10 +82,10 @@ async def update_todo(
 ):
     """更新待办"""
     todo = await todo_service.get_by_id(db, todo_id)
-    if not todo or todo.userId != current_user.id:
+    if not todo or todo.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="待办不存在")
 
-    updated = await todo_service.update(db, todo_id, data.model_dump(exclude_unset=True))
+    updated = await todo_service.update(db, todo_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
 
@@ -97,7 +97,7 @@ async def toggle_todo(
 ):
     """切换待办完成状态"""
     todo = await todo_service.get_by_id(db, todo_id)
-    if not todo or todo.userId != current_user.id:
+    if not todo or todo.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="待办不存在")
 
     updated = await todo_service.toggle_complete(db, todo_id)
@@ -112,7 +112,7 @@ async def delete_todo(
 ):
     """删除待办"""
     todo = await todo_service.get_by_id(db, todo_id)
-    if not todo or todo.userId != current_user.id:
+    if not todo or todo.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="待办不存在")
 
     await todo_service.delete(db, todo_id)

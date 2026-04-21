@@ -18,14 +18,14 @@ class TripService(BaseService[Trip]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[Trip]:
         """查询用户差旅申请"""
         result = await db.execute(
-            select(Trip).where(Trip.userId == user_id).order_by(Trip.createdAt.desc())
+            select(Trip).where(Trip.user_id == user_id).order_by(Trip.created_at.desc())
         )
         return result.scalars().all()
 
     async def find_by_status(self, db: AsyncSession, status: str) -> List[Trip]:
         """按状态查询"""
         result = await db.execute(
-            select(Trip).where(Trip.status == status).order_by(Trip.createdAt.desc())
+            select(Trip).where(Trip.status == status).order_by(Trip.created_at.desc())
         )
         return result.scalars().all()
 
@@ -39,9 +39,9 @@ class TripService(BaseService[Trip]):
         """审批差旅申请"""
         return await self.update(db, id, {
             "status": "approved" if approved else "rejected",
-            "approvalComment": comment,
-            "approvedBy": approver_id,
-            "approvedAt": datetime.now()
+            "approval_comment": comment,
+            "approved_by": approver_id,
+            "approved_at": datetime.now()
         })
 
     async def calculate_total_fee(self, db: AsyncSession, status: str = None) -> dict:
@@ -52,8 +52,8 @@ class TripService(BaseService[Trip]):
         result = await db.execute(query)
         trips = result.scalars().all()
 
-        total_transport = sum(t.estTransportFee or 0 for t in trips)
-        total_accom = sum(t.estAccomFee or 0 for t in trips)
+        total_transport = sum(t.est_transport_fee or 0 for t in trips)
+        total_accom = sum(t.est_accom_fee or 0 for t in trips)
 
         return {
             "count": len(trips),

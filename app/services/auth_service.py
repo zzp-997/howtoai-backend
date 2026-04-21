@@ -39,7 +39,7 @@ class AuthService:
 
         # 创建 token
         token = create_access_token({
-            "userId": user.id,
+            "user_id": user.id,
             "username": user.username,
             "role": user.role
         })

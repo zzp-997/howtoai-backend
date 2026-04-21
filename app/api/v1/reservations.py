@@ -60,13 +60,13 @@ async def create_reservation(
 ):
     """创建预定"""
     # 检查冲突
-    conflict = await reservation_service.check_conflict(db, data.roomId, data.start, data.end)
+    conflict = await reservation_service.check_conflict(db, data.room_id, data.start_time, data.end_time)
     if conflict:
         raise HTTPException(status_code=400, detail=f"时间冲突，与预定 {conflict.id} 冲突")
 
     reservation = await reservation_service.create(db, {
-        **data.model_dump(),
-        "userId": current_user.id
+        **data.model_dump(by_alias=False),
+        "user_id": current_user.id
     })
     return ResponseModel(data=reservation)
 
@@ -79,7 +79,7 @@ async def check_conflict(
 ):
     """检查预定冲突"""
     conflict = await reservation_service.check_conflict(
-        db, data.roomId, data.start, data.end, data.excludeId
+        db, data.room_id, data.start_time, data.end_time, data.exclude_id
     )
     return ResponseModel(data={"hasConflict": conflict is not None, "conflict": conflict})
 
@@ -95,18 +95,18 @@ async def update_reservation(
     reservation = await reservation_service.get_by_id(db, reservation_id)
     if not reservation:
         raise HTTPException(status_code=404, detail="预定不存在")
-    if reservation.userId != current_user.id:
+    if reservation.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
 
     # 检查冲突
-    if data.start and data.end:
+    if data.start_time and data.end_time:
         conflict = await reservation_service.check_conflict(
-            db, reservation.roomId, data.start, data.end, reservation_id
+            db, reservation.room_id, data.start_time, data.end_time, reservation_id
         )
         if conflict:
             raise HTTPException(status_code=400, detail="时间冲突")
 
-    updated = await reservation_service.update(db, reservation_id, data.model_dump(exclude_unset=True))
+    updated = await reservation_service.update(db, reservation_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
 
@@ -120,7 +120,7 @@ async def cancel_reservation(
     reservation = await reservation_service.get_by_id(db, reservation_id)
     if not reservation:
         raise HTTPException(status_code=404, detail="预定不存在")
-    if reservation.userId != current_user.id:
+    if reservation.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
 
     await reservation_service.update(db, reservation_id, {"status": "cancelled"})

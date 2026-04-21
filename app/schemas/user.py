@@ -4,9 +4,10 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class UserBase(BaseModel):
+class UserBase(CamelModel):
     """用户基础信息"""
     username: str
     name: str
@@ -22,7 +23,7 @@ class UserCreate(UserBase):
     password: str
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(CamelModel):
     """更新用户"""
     name: Optional[str] = None
     department: Optional[str] = None
@@ -30,31 +31,28 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     avatar: Optional[str] = None
-    annualLeaveBalance: Optional[float] = None
-    sickLeaveBalance: Optional[float] = None
+    annual_leave_balance: Optional[float] = None
+    sick_leave_balance: Optional[float] = None
 
 
 class UserResponse(UserBase):
     """用户响应"""
     id: int
     avatar: Optional[str] = None
-    annualLeaveBalance: float = 0
-    sickLeaveBalance: float = 0
-    isActive: bool = True
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    annual_leave_balance: float = 0
+    sick_leave_balance: float = 0
+    is_active: bool = True
+    created_at: Optional[datetime] = None
 
 
 class LoginRequest(BaseModel):
     """登录请求"""
     username: str
     password: str
-    loginType: int = 1  # 1: 密码登录
+    login_type: int = 1
 
 
-class LoginData(BaseModel):
+class LoginData(CamelModel):
     """登录数据"""
     token: str
     user: UserResponse
@@ -67,8 +65,8 @@ class LoginResponse(BaseModel):
     data: Optional[LoginData] = None
 
 
-class TokenData(BaseModel):
+class TokenData(CamelModel):
     """Token 数据"""
-    userId: int
+    user_id: int
     username: str
     role: str

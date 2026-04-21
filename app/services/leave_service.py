@@ -18,14 +18,14 @@ class LeaveService(BaseService[Leave]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[Leave]:
         """查询用户请假申请"""
         result = await db.execute(
-            select(Leave).where(Leave.userId == user_id).order_by(Leave.createdAt.desc())
+            select(Leave).where(Leave.user_id == user_id).order_by(Leave.created_at.desc())
         )
         return result.scalars().all()
 
     async def find_by_status(self, db: AsyncSession, status: str) -> List[Leave]:
         """按状态查询"""
         result = await db.execute(
-            select(Leave).where(Leave.status == status).order_by(Leave.createdAt.desc())
+            select(Leave).where(Leave.status == status).order_by(Leave.created_at.desc())
         )
         return result.scalars().all()
 
@@ -39,9 +39,9 @@ class LeaveService(BaseService[Leave]):
         """审批请假申请"""
         return await self.update(db, id, {
             "status": "approved" if approved else "rejected",
-            "approvalComment": comment,
-            "approvedBy": approver_id,
-            "approvedAt": datetime.now()
+            "approval_comment": comment,
+            "approved_by": approver_id,
+            "approved_at": datetime.now()
         })
 
     async def check_overlap(
@@ -57,7 +57,7 @@ class LeaveService(BaseService[Leave]):
                 continue
 
             # 检查日期重叠
-            if start_date <= leave.endDate and end_date >= leave.startDate:
+            if start_date <= leave.end_date and end_date >= leave.start_date:
                 return leave
 
         return None

@@ -4,17 +4,18 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class TodoBase(BaseModel):
+class TodoBase(CamelModel):
     """待办基础"""
     title: str
     description: Optional[str] = None
-    taskDate: Optional[str] = None  # YYYY-MM-DD
-    dueDate: Optional[str] = None
+    task_date: Optional[str] = None  # YYYY-MM-DD
+    due_date: Optional[str] = None
     priority: int = 2  # 1-高 2-中 3-低
-    relatedType: Optional[str] = None
-    relatedId: Optional[int] = None
+    related_type: Optional[str] = None
+    related_id: Optional[int] = None
 
 
 class TodoCreate(TodoBase):
@@ -22,12 +23,12 @@ class TodoCreate(TodoBase):
     pass
 
 
-class TodoUpdate(BaseModel):
+class TodoUpdate(CamelModel):
     """更新待办"""
     title: Optional[str] = None
     description: Optional[str] = None
-    taskDate: Optional[str] = None
-    dueDate: Optional[str] = None
+    task_date: Optional[str] = None
+    due_date: Optional[str] = None
     priority: Optional[int] = None
     status: Optional[str] = None
 
@@ -35,10 +36,7 @@ class TodoUpdate(BaseModel):
 class TodoResponse(TodoBase):
     """待办响应"""
     id: int
-    userId: int
+    user_id: int
     status: str = "pending"
-    completedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    completed_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None

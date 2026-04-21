@@ -1,12 +1,11 @@
 -- =============================================
--- 极智协同 - Supabase 数据库建表 SQL
--- 在 Supabase SQL Editor 中执行
--- 注意：用户数据由后端自动初始化
+-- 极智协同 - MySQL 8 数据库建表 SQL
+-- 字段名使用 snake_case 风格
 -- =============================================
 
 -- 1. 用户表
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
@@ -16,265 +15,284 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     email VARCHAR(100),
     avatar VARCHAR(255),
-    "annualLeaveBalance" FLOAT DEFAULT 0,
-    "sickLeaveBalance" FLOAT DEFAULT 0,
-    "isActive" BOOLEAN DEFAULT TRUE,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    annual_leave_balance FLOAT DEFAULT 0,
+    sick_leave_balance FLOAT DEFAULT 0,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX idx_users_username ON users(username);
 
 -- 2. 会议室表
 CREATE TABLE IF NOT EXISTS meeting_rooms (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    capacity INTEGER DEFAULT 10,
+    capacity INT DEFAULT 10,
     location VARCHAR(200),
     equipment TEXT,
     description TEXT,
-    "isActive" BOOLEAN DEFAULT TRUE,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3. 预定记录表
 CREATE TABLE IF NOT EXISTS reservations (
-    id SERIAL PRIMARY KEY,
-    "roomId" INTEGER NOT NULL REFERENCES meeting_rooms(id),
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT NOT NULL,
+    user_id INT NOT NULL,
     title VARCHAR(200) NOT NULL,
-    "start" VARCHAR(20) NOT NULL,
-    "end" VARCHAR(20) NOT NULL,
+    start_time VARCHAR(20) NOT NULL,
+    end_time VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT 'confirmed',
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_id) REFERENCES meeting_rooms(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_reservations_room ON reservations("roomId");
-CREATE INDEX IF NOT EXISTS idx_reservations_user ON reservations("userId");
+CREATE INDEX idx_reservations_room ON reservations(room_id);
+CREATE INDEX idx_reservations_user ON reservations(user_id);
 
 -- 4. 差旅申请表
 CREATE TABLE IF NOT EXISTS trips (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     destination VARCHAR(200) NOT NULL,
     reason TEXT,
-    "startDate" VARCHAR(10) NOT NULL,
-    "endDate" VARCHAR(10) NOT NULL,
-    "estTransportFee" FLOAT DEFAULT 0,
-    "estAccomFee" FLOAT DEFAULT 0,
+    start_date VARCHAR(10) NOT NULL,
+    end_date VARCHAR(10) NOT NULL,
+    est_transport_fee FLOAT DEFAULT 0,
+    est_accom_fee FLOAT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',
-    "approvalComment" TEXT,
-    "approvedBy" INTEGER REFERENCES users(id),
-    "approvedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    approval_comment TEXT,
+    approved_by INT,
+    approved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (approved_by) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_trips_user ON trips("userId");
-CREATE INDEX IF NOT EXISTS idx_trips_status ON trips(status);
+CREATE INDEX idx_trips_user ON trips(user_id);
+CREATE INDEX idx_trips_status ON trips(status);
 
 -- 5. 请假申请表
 CREATE TABLE IF NOT EXISTS leaves (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
-    "leaveType" VARCHAR(20) NOT NULL,
-    "startDate" VARCHAR(10) NOT NULL,
-    "endDate" VARCHAR(10) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    leave_type VARCHAR(20) NOT NULL,
+    start_date VARCHAR(10) NOT NULL,
+    end_date VARCHAR(10) NOT NULL,
     reason TEXT,
     status VARCHAR(20) DEFAULT 'pending',
-    "approvalComment" TEXT,
-    "approvedBy" INTEGER REFERENCES users(id),
-    "approvedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    approval_comment TEXT,
+    approved_by INT,
+    approved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (approved_by) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_leaves_user ON leaves("userId");
-CREATE INDEX IF NOT EXISTS idx_leaves_status ON leaves(status);
+CREATE INDEX idx_leaves_user ON leaves(user_id);
+CREATE INDEX idx_leaves_status ON leaves(status);
 
 -- 6. 考勤打卡表
 CREATE TABLE IF NOT EXISTS attendances (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     date VARCHAR(10) NOT NULL,
-    "checkInTime" VARCHAR(10),
-    "checkOutTime" VARCHAR(10),
-    "isLate" BOOLEAN DEFAULT FALSE,
-    "isEarlyLeave" BOOLEAN DEFAULT FALSE,
+    check_in_time VARCHAR(10),
+    check_out_time VARCHAR(10),
+    is_late TINYINT(1) DEFAULT 0,
+    is_early_leave TINYINT(1) DEFAULT 0,
     status VARCHAR(20) DEFAULT 'normal',
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_attendances_user ON attendances("userId");
-CREATE INDEX IF NOT EXISTS idx_attendances_date ON attendances(date);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_attendances_user_date ON attendances("userId", date);
+CREATE INDEX idx_attendances_user ON attendances(user_id);
+CREATE INDEX idx_attendances_date ON attendances(date);
+CREATE UNIQUE INDEX idx_attendances_user_date ON attendances(user_id, date);
 
 -- 7. 补卡申请表
 CREATE TABLE IF NOT EXISTS make_up_requests (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     date VARCHAR(10) NOT NULL,
     type VARCHAR(20) NOT NULL,
     reason TEXT,
     status VARCHAR(20) DEFAULT 'pending',
-    "approvedBy" INTEGER REFERENCES users(id),
-    "approvedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    approved_by INT,
+    approved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (approved_by) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_makeup_user ON make_up_requests("userId");
+CREATE INDEX idx_makeup_user ON make_up_requests(user_id);
 
 -- 8. 考勤配置表
 CREATE TABLE IF NOT EXISTS attendance_config (
-    key VARCHAR(50) PRIMARY KEY,
+    `key` VARCHAR(50) PRIMARY KEY,
     value VARCHAR(100)
 );
 
 -- 9. 文档分类表
 CREATE TABLE IF NOT EXISTS document_categories (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 10. 文档表
 CREATE TABLE IF NOT EXISTS documents (
-    id SERIAL PRIMARY KEY,
-    "categoryId" INTEGER REFERENCES document_categories(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    "fileSize" INTEGER,
-    "fileType" VARCHAR(50),
-    "uploadBy" INTEGER REFERENCES users(id),
+    file_size INT,
+    file_type VARCHAR(50),
+    upload_by INT,
     tags TEXT,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES document_categories(id),
+    FOREIGN KEY (upload_by) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_documents_category ON documents("categoryId");
-CREATE INDEX IF NOT EXISTS idx_documents_upload ON documents("uploadBy");
+CREATE INDEX idx_documents_category ON documents(category_id);
+CREATE INDEX idx_documents_upload ON documents(upload_by);
 
 -- 11. 待办事项表
 CREATE TABLE IF NOT EXISTS todos (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    "taskDate" VARCHAR(10),
-    "dueDate" VARCHAR(10),
+    task_date VARCHAR(10),
+    due_date VARCHAR(10),
     status VARCHAR(20) DEFAULT 'pending',
-    priority INTEGER DEFAULT 2,
-    "relatedType" VARCHAR(50),
-    "relatedId" INTEGER,
-    "completedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    priority INT DEFAULT 2,
+    related_type VARCHAR(50),
+    related_id INT,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_todos_user ON todos("userId");
-CREATE INDEX IF NOT EXISTS idx_todos_status ON todos(status);
+CREATE INDEX idx_todos_user ON todos(user_id);
+CREATE INDEX idx_todos_status ON todos(status);
 
 -- 12. 公告通知表
 CREATE TABLE IF NOT EXISTS announcements (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     summary VARCHAR(500),
     category VARCHAR(20) DEFAULT 'notice',
-    "categoryLabel" VARCHAR(50),
-    "isTop" BOOLEAN DEFAULT FALSE,
-    "isRemind" BOOLEAN DEFAULT FALSE,
-    "publishTime" TIMESTAMP,
-    "readBy" TEXT,
-    "popupShown" TEXT,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    category_label VARCHAR(50),
+    is_top TINYINT(1) DEFAULT 0,
+    is_remind TINYINT(1) DEFAULT 0,
+    publish_time TIMESTAMP NULL,
+    read_by TEXT,
+    popup_shown TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_announcements_category ON announcements(category);
+CREATE INDEX idx_announcements_category ON announcements(category);
 
 -- 13. 用户偏好设置表
 CREATE TABLE IF NOT EXISTS user_preferences (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL UNIQUE REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
     theme VARCHAR(20) DEFAULT 'light',
     language VARCHAR(10) DEFAULT 'zh',
-    "notificationsEnabled" BOOLEAN DEFAULT TRUE,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    notifications_enabled TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 14. 出差模板表
 CREATE TABLE IF NOT EXISTS trip_templates (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     destination VARCHAR(200),
     reason TEXT,
-    "estTransportFee" FLOAT DEFAULT 0,
-    "estAccomFee" FLOAT DEFAULT 0,
-    "useCount" INTEGER DEFAULT 0,
-    "lastUsedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    est_transport_fee FLOAT DEFAULT 0,
+    est_accom_fee FLOAT DEFAULT 0,
+    use_count INT DEFAULT 0,
+    last_used_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_trip_templates_user ON trip_templates("userId");
+CREATE INDEX idx_trip_templates_user ON trip_templates(user_id);
 
 -- 15. 城市配置表
 CREATE TABLE IF NOT EXISTS city_configs (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     province VARCHAR(100),
-    "transportFeeBase" FLOAT DEFAULT 0,
-    "accomFeeBase" FLOAT DEFAULT 0,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    transport_fee_base FLOAT DEFAULT 0,
+    accom_fee_base FLOAT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 16. 节假日配置表
 CREATE TABLE IF NOT EXISTS holiday_configs (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     date VARCHAR(10) NOT NULL,
     type VARCHAR(20),
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 17. 文档查看日志表
 CREATE TABLE IF NOT EXISTS document_view_logs (
-    id SERIAL PRIMARY KEY,
-    "documentId" INTEGER NOT NULL REFERENCES documents(id),
-    "userId" INTEGER NOT NULL REFERENCES users(id),
-    "viewTime" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    user_id INT NOT NULL,
+    view_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES documents(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_doc_view_doc ON document_view_logs("documentId");
-CREATE INDEX IF NOT EXISTS idx_doc_view_user ON document_view_logs("userId");
+CREATE INDEX idx_doc_view_doc ON document_view_logs(document_id);
+CREATE INDEX idx_doc_view_user ON document_view_logs(user_id);
 
 -- 18. 搜索历史表
 CREATE TABLE IF NOT EXISTS search_histories (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     keyword VARCHAR(200) NOT NULL,
-    "searchType" VARCHAR(50),
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    search_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_search_user ON search_histories("userId");
+CREATE INDEX idx_search_user ON search_histories(user_id);
 
 -- 19. 报销单表
 CREATE TABLE IF NOT EXISTS expense_claims (
-    id SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES users(id),
-    "tripId" INTEGER REFERENCES trips(id),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    trip_id INT,
     expenses TEXT,
-    "totalEstimated" FLOAT DEFAULT 0,
-    "totalActual" FLOAT DEFAULT 0,
+    total_estimated FLOAT DEFAULT 0,
+    total_actual FLOAT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'draft',
-    "submittedAt" TIMESTAMP,
-    "approvedBy" INTEGER REFERENCES users(id),
-    "approvedAt" TIMESTAMP,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    submitted_at TIMESTAMP NULL,
+    approved_by INT,
+    approved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (trip_id) REFERENCES trips(id),
+    FOREIGN KEY (approved_by) REFERENCES users(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_expense_user ON expense_claims("userId");
-CREATE INDEX IF NOT EXISTS idx_expense_trip ON expense_claims("tripId");
+CREATE INDEX idx_expense_user ON expense_claims(user_id);
+CREATE INDEX idx_expense_trip ON expense_claims(trip_id);
 
 -- =============================================
 -- 完成
 -- =============================================
--- 执行完成后，启动后端会自动创建测试用户

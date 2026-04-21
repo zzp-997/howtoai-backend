@@ -18,14 +18,14 @@ class ReservationService(BaseService[Reservation]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[Reservation]:
         """查询用户预定"""
         result = await db.execute(
-            select(Reservation).where(Reservation.userId == user_id).order_by(Reservation.start.desc())
+            select(Reservation).where(Reservation.user_id == user_id).order_by(Reservation.start_time.desc())
         )
         return result.scalars().all()
 
     async def find_by_room(self, db: AsyncSession, room_id: int) -> List[Reservation]:
         """查询会议室预定"""
         result = await db.execute(
-            select(Reservation).where(Reservation.roomId == room_id).order_by(Reservation.start)
+            select(Reservation).where(Reservation.room_id == room_id).order_by(Reservation.start_time)
         )
         return result.scalars().all()
 
@@ -33,9 +33,9 @@ class ReservationService(BaseService[Reservation]):
         """查询指定日期的预定"""
         result = await db.execute(
             select(Reservation).where(
-                Reservation.roomId == room_id,
-                Reservation.start.like(f"{date}%")
-            ).order_by(Reservation.start)
+                Reservation.room_id == room_id,
+                Reservation.start_time.like(f"{date}%")
+            ).order_by(Reservation.start_time)
         )
         return result.scalars().all()
 
@@ -53,8 +53,8 @@ class ReservationService(BaseService[Reservation]):
             if exclude_id and r.id == exclude_id:
                 continue
 
-            r_start = datetime.strptime(r.start, "%Y-%m-%d %H:%M")
-            r_end = datetime.strptime(r.end, "%Y-%m-%d %H:%M")
+            r_start = datetime.strptime(r.start_time, "%Y-%m-%d %H:%M")
+            r_end = datetime.strptime(r.end_time, "%Y-%m-%d %H:%M")
 
             # 时间重叠检测
             if start_dt < r_end and end_dt > r_start:
@@ -67,9 +67,9 @@ class ReservationService(BaseService[Reservation]):
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         result = await db.execute(
             select(Reservation).where(
-                Reservation.userId == user_id,
-                Reservation.start >= now
-            ).order_by(Reservation.start)
+                Reservation.user_id == user_id,
+                Reservation.start_time >= now
+            ).order_by(Reservation.start_time)
         )
         return result.scalars().all()
 

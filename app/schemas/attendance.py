@@ -4,22 +4,20 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class AttendanceResponse(BaseModel):
+class AttendanceResponse(CamelModel):
     """考勤记录响应"""
     id: int
-    userId: int
+    user_id: int
     date: str
-    checkInTime: Optional[str] = None
-    checkOutTime: Optional[str] = None
-    isLate: bool = False
-    isEarlyLeave: bool = False
+    check_in_time: Optional[str] = None
+    check_out_time: Optional[str] = None
+    is_late: bool = False
+    is_early_leave: bool = False
     status: str = "normal"
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None
 
 
 class AttendanceStats(BaseModel):
@@ -27,11 +25,11 @@ class AttendanceStats(BaseModel):
     total: int
     normal: int
     late: int
-    missingCheckIn: int
-    missingCheckOut: int
+    missing_check_in: int
+    missing_check_out: int
 
 
-class MakeUpRequestBase(BaseModel):
+class MakeUpRequestBase(CamelModel):
     """补卡申请基础"""
     date: str  # YYYY-MM-DD
     type: str  # checkIn/checkOut
@@ -46,11 +44,8 @@ class MakeUpRequestCreate(MakeUpRequestBase):
 class MakeUpRequestResponse(MakeUpRequestBase):
     """补卡申请响应"""
     id: int
-    userId: int
+    user_id: int
     status: str = "pending"
-    approvedBy: Optional[int] = None
-    approvedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None

@@ -50,7 +50,7 @@ class UserPreferenceService(BaseService[UserPreference]):
     async def get_by_user_id(self, db: AsyncSession, user_id: int) -> Optional[UserPreference]:
         """根据用户 ID 查询"""
         result = await db.execute(
-            select(UserPreference).where(UserPreference.userId == user_id)
+            select(UserPreference).where(UserPreference.user_id == user_id)
         )
         return result.scalar_one_or_none()
 
@@ -58,7 +58,7 @@ class UserPreferenceService(BaseService[UserPreference]):
         """获取或创建用户偏好"""
         pref = await self.get_by_user_id(db, user_id)
         if not pref:
-            pref = await self.create(db, {"userId": user_id})
+            pref = await self.create(db, {"user_id": user_id})
         return pref
 
 
@@ -72,8 +72,8 @@ class TripTemplateService(BaseService[TripTemplate]):
         """根据用户 ID 查询"""
         result = await db.execute(
             select(TripTemplate)
-            .where(TripTemplate.userId == user_id)
-            .order_by(TripTemplate.useCount.desc())
+            .where(TripTemplate.user_id == user_id)
+            .order_by(TripTemplate.use_count.desc())
         )
         return result.scalars().all()
 
@@ -82,8 +82,8 @@ class TripTemplateService(BaseService[TripTemplate]):
         from datetime import datetime
         template = await self.get_by_id(db, template_id)
         if template:
-            template.useCount += 1
-            template.lastUsedAt = datetime.now()
+            template.use_count += 1
+            template.last_used_at = datetime.now()
             await db.commit()
             await db.refresh(template)
         return template

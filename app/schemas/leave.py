@@ -4,13 +4,14 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.common import CamelModel
 
 
-class LeaveBase(BaseModel):
+class LeaveBase(CamelModel):
     """请假基础"""
-    leaveType: str  # annual/sick/personal
-    startDate: str  # YYYY-MM-DD
-    endDate: str
+    leave_type: str  # annual/sick/personal
+    start_date: str  # YYYY-MM-DD
+    end_date: str
     reason: Optional[str] = None
 
 
@@ -19,11 +20,11 @@ class LeaveCreate(LeaveBase):
     pass
 
 
-class LeaveUpdate(BaseModel):
+class LeaveUpdate(CamelModel):
     """更新请假申请"""
-    leaveType: Optional[str] = None
-    startDate: Optional[str] = None
-    endDate: Optional[str] = None
+    leave_type: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     reason: Optional[str] = None
 
 
@@ -36,12 +37,9 @@ class LeaveApprove(BaseModel):
 class LeaveResponse(LeaveBase):
     """请假申请响应"""
     id: int
-    userId: int
+    user_id: int
     status: str = "pending"
-    approvalComment: Optional[str] = None
-    approvedBy: Optional[int] = None
-    approvedAt: Optional[datetime] = None
-    createdAt: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    approval_comment: Optional[str] = None
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None

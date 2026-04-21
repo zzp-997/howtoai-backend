@@ -18,7 +18,7 @@ class TodoService(BaseService[Todo]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[Todo]:
         """查询用户待办"""
         result = await db.execute(
-            select(Todo).where(Todo.userId == user_id).order_by(Todo.createdAt.desc())
+            select(Todo).where(Todo.user_id == user_id).order_by(Todo.created_at.desc())
         )
         return result.scalars().all()
 
@@ -26,9 +26,9 @@ class TodoService(BaseService[Todo]):
         """查询未完成待办"""
         result = await db.execute(
             select(Todo).where(
-                Todo.userId == user_id,
+                Todo.user_id == user_id,
                 Todo.status == "pending"
-            ).order_by(Todo.dueDate, Todo.priority)
+            ).order_by(Todo.due_date, Todo.priority)
         )
         return result.scalars().all()
 
@@ -36,9 +36,9 @@ class TodoService(BaseService[Todo]):
         """查询已完成待办"""
         result = await db.execute(
             select(Todo).where(
-                Todo.userId == user_id,
+                Todo.user_id == user_id,
                 Todo.status == "completed"
-            ).order_by(Todo.completedAt.desc())
+            ).order_by(Todo.completed_at.desc())
         )
         return result.scalars().all()
 
@@ -51,25 +51,25 @@ class TodoService(BaseService[Todo]):
         new_status = "completed" if todo.status == "pending" else "pending"
         completed_at = datetime.now() if new_status == "completed" else None
 
-        return await self.update(db, id, {"status": new_status, "completedAt": completed_at})
+        return await self.update(db, id, {"status": new_status, "completed_at": completed_at})
 
     async def count_pending(self, db: AsyncSession, user_id: int) -> int:
         """统计未完成数量"""
         result = await db.execute(
-            select(Todo).where(Todo.userId == user_id, Todo.status == "pending")
+            select(Todo).where(Todo.user_id == user_id, Todo.status == "pending")
         )
         return len(result.scalars().all())
 
     async def find_upcoming(self, db: AsyncSession, user_id: int) -> List[Todo]:
         """查询即将到期的待办"""
         today = datetime.now().strftime("%Y-%m-%d")
-        tomorrow = datetime.now().strftime("%Y-%m-%d")  # 简化处理
+        tomorrow = datetime.now().strftime("%Y-%m-%d")
         result = await db.execute(
             select(Todo).where(
-                Todo.userId == user_id,
+                Todo.user_id == user_id,
                 Todo.status == "pending",
-                Todo.dueDate.in_([today, tomorrow])
-            ).order_by(Todo.dueDate)
+                Todo.due_date.in_([today, tomorrow])
+            ).order_by(Todo.due_date)
         )
         return result.scalars().all()
 

@@ -20,10 +20,10 @@ class User(Base):
     phone = Column(String(20))
     email = Column(String(100))
     avatar = Column(String(255))
-    annualLeaveBalance = Column(Float, default=0)
-    sickLeaveBalance = Column(Float, default=0)
-    isActive = Column(Boolean, default=True)
-    createdAt = Column(DateTime, server_default=func.now())
+    annual_leave_balance = Column(Float, default=0)
+    sick_leave_balance = Column(Float, default=0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class MeetingRoom(Base):
@@ -34,10 +34,10 @@ class MeetingRoom(Base):
     name = Column(String(100), nullable=False)
     capacity = Column(Integer, default=10)
     location = Column(String(200))
-    equipment = Column(Text)  # JSON 格式存储设备列表
+    equipment = Column(Text)
     description = Column(Text)
-    isActive = Column(Boolean, default=True)
-    createdAt = Column(DateTime, server_default=func.now())
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Reservation(Base):
@@ -45,13 +45,13 @@ class Reservation(Base):
     __tablename__ = "reservations"
 
     id = Column(Integer, primary_key=True, index=True)
-    roomId = Column(Integer, index=True, nullable=False)
-    userId = Column(Integer, index=True, nullable=False)
+    room_id = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     title = Column(String(200), nullable=False)
-    start = Column("start", String(20), nullable=False)  # YYYY-MM-DD HH:mm
-    end = Column("end", String(20), nullable=False)
-    status = Column(String(20), default="confirmed")  # confirmed/cancelled
-    createdAt = Column(DateTime, server_default=func.now())
+    start_time = Column(String(20), nullable=False)
+    end_time = Column(String(20), nullable=False)
+    status = Column(String(20), default="confirmed")
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Trip(Base):
@@ -59,18 +59,18 @@ class Trip(Base):
     __tablename__ = "trips"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     destination = Column(String(200), nullable=False)
     reason = Column(Text)
-    startDate = Column(String(10), nullable=False)  # YYYY-MM-DD
-    endDate = Column(String(10), nullable=False)
-    estTransportFee = Column(Float, default=0)
-    estAccomFee = Column(Float, default=0)
-    status = Column(String(20), default="pending")  # pending/approved/rejected
-    approvalComment = Column(Text)
-    approvedBy = Column(Integer)
-    approvedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
+    start_date = Column(String(10), nullable=False)
+    end_date = Column(String(10), nullable=False)
+    est_transport_fee = Column(Float, default=0)
+    est_accom_fee = Column(Float, default=0)
+    status = Column(String(20), default="pending")
+    approval_comment = Column(Text)
+    approved_by = Column(Integer)
+    approved_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Leave(Base):
@@ -78,16 +78,16 @@ class Leave(Base):
     __tablename__ = "leaves"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
-    leaveType = Column(String(20), nullable=False)  # annual/sick/personal
-    startDate = Column(String(10), nullable=False)
-    endDate = Column(String(10), nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
+    leave_type = Column(String(20), nullable=False)
+    start_date = Column(String(10), nullable=False)
+    end_date = Column(String(10), nullable=False)
     reason = Column(Text)
     status = Column(String(20), default="pending")
-    approvalComment = Column(Text)
-    approvedBy = Column(Integer)
-    approvedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
+    approval_comment = Column(Text)
+    approved_by = Column(Integer)
+    approved_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Attendance(Base):
@@ -95,14 +95,14 @@ class Attendance(Base):
     __tablename__ = "attendances"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
-    date = Column(String(10), index=True, nullable=False)  # YYYY-MM-DD
-    checkInTime = Column(String(10))  # HH:mm
-    checkOutTime = Column(String(10))
-    isLate = Column(Boolean, default=False)
-    isEarlyLeave = Column(Boolean, default=False)
+    user_id = Column(Integer, index=True, nullable=False)
+    date = Column(String(10), index=True, nullable=False)
+    check_in_time = Column(String(10))
+    check_out_time = Column(String(10))
+    is_late = Column(Boolean, default=False)
+    is_early_leave = Column(Boolean, default=False)
     status = Column(String(20), default="normal")
-    createdAt = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class MakeUpRequest(Base):
@@ -110,14 +110,14 @@ class MakeUpRequest(Base):
     __tablename__ = "make_up_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     date = Column(String(10), nullable=False)
-    type = Column(String(20), nullable=False)  # checkIn/checkOut
+    type = Column(String(20), nullable=False)
     reason = Column(Text)
     status = Column(String(20), default="pending")
-    approvedBy = Column(Integer)
-    approvedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
+    approved_by = Column(Integer)
+    approved_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class AttendanceConfig(Base):
@@ -135,7 +135,7 @@ class DocumentCategory(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    createdAt = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Document(Base):
@@ -143,14 +143,14 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(Integer, primary_key=True, index=True)
-    categoryId = Column(Integer, index=True)
+    category_id = Column(Integer, index=True)
     name = Column(String(200), nullable=False)
     description = Column(Text)
-    fileSize = Column(Integer)
-    fileType = Column(String(50))
-    uploadBy = Column(Integer, index=True)
-    tags = Column(Text)  # JSON 格式
-    createdAt = Column(DateTime, server_default=func.now())
+    file_size = Column(Integer)
+    file_type = Column(String(50))
+    upload_by = Column(Integer, index=True)
+    tags = Column(Text)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Todo(Base):
@@ -158,17 +158,17 @@ class Todo(Base):
     __tablename__ = "todos"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     title = Column(String(200), nullable=False)
     description = Column(Text)
-    taskDate = Column(String(10))  # YYYY-MM-DD
-    dueDate = Column(String(10))
-    status = Column(String(20), default="pending")  # pending/completed
-    priority = Column(Integer, default=2)  # 1-高 2-中 3-低
-    relatedType = Column(String(50))
-    relatedId = Column(Integer)
-    completedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
+    task_date = Column(String(10))
+    due_date = Column(String(10))
+    status = Column(String(20), default="pending")
+    priority = Column(Integer, default=2)
+    related_type = Column(String(50))
+    related_id = Column(Integer)
+    completed_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Announcement(Base):
@@ -179,14 +179,14 @@ class Announcement(Base):
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     summary = Column(String(500))
-    category = Column(String(20), default="notice")  # policy/activity/notice
-    categoryLabel = Column(String(50))
-    isTop = Column(Boolean, default=False)
-    isRemind = Column(Boolean, default=False)
-    publishTime = Column(DateTime)
-    readBy = Column(Text)  # JSON 数组存储已读用户ID
-    popupShown = Column(Text)  # JSON 数组
-    createdAt = Column(DateTime, server_default=func.now())
+    category = Column(String(20), default="notice")
+    category_label = Column(String(50))
+    is_top = Column(Boolean, default=False)
+    is_remind = Column(Boolean, default=False)
+    publish_time = Column(DateTime)
+    read_by = Column(Text)
+    popup_shown = Column(Text)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class UserPreference(Base):
@@ -194,11 +194,11 @@ class UserPreference(Base):
     __tablename__ = "user_preferences"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False, unique=True)
     theme = Column(String(20), default="light")
     language = Column(String(10), default="zh")
-    notificationsEnabled = Column(Boolean, default=True)
-    createdAt = Column(DateTime, server_default=func.now())
+    notifications_enabled = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class TripTemplate(Base):
@@ -206,15 +206,15 @@ class TripTemplate(Base):
     __tablename__ = "trip_templates"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     name = Column(String(100), nullable=False)
     destination = Column(String(200))
     reason = Column(Text)
-    estTransportFee = Column(Float, default=0)
-    estAccomFee = Column(Float, default=0)
-    useCount = Column(Integer, default=0)
-    lastUsedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
+    est_transport_fee = Column(Float, default=0)
+    est_accom_fee = Column(Float, default=0)
+    use_count = Column(Integer, default=0)
+    last_used_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class CityConfig(Base):
@@ -224,9 +224,9 @@ class CityConfig(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     province = Column(String(100))
-    transportFeeBase = Column(Float, default=0)
-    accomFeeBase = Column(Float, default=0)
-    createdAt = Column(DateTime, server_default=func.now())
+    transport_fee_base = Column(Float, default=0)
+    accom_fee_base = Column(Float, default=0)
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class HolidayConfig(Base):
@@ -235,9 +235,9 @@ class HolidayConfig(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    date = Column(String(10), nullable=False)  # YYYY-MM-DD
-    type = Column(String(20))  # holiday/workday
-    createdAt = Column(DateTime, server_default=func.now())
+    date = Column(String(10), nullable=False)
+    type = Column(String(20))
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class DocumentViewLog(Base):
@@ -245,9 +245,9 @@ class DocumentViewLog(Base):
     __tablename__ = "document_view_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    documentId = Column(Integer, index=True, nullable=False)
-    userId = Column(Integer, index=True, nullable=False)
-    viewTime = Column(DateTime, server_default=func.now())
+    document_id = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
+    view_time = Column(DateTime, server_default=func.now())
 
 
 class SearchHistory(Base):
@@ -255,10 +255,10 @@ class SearchHistory(Base):
     __tablename__ = "search_histories"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, index=True, nullable=False)
     keyword = Column(String(200), nullable=False)
-    searchType = Column(String(50))
-    createdAt = Column(DateTime, server_default=func.now())
+    search_type = Column(String(50))
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class ExpenseClaim(Base):
@@ -266,14 +266,14 @@ class ExpenseClaim(Base):
     __tablename__ = "expense_claims"
 
     id = Column(Integer, primary_key=True, index=True)
-    userId = Column(Integer, index=True, nullable=False)
-    tripId = Column(Integer, index=True)
-    expenses = Column(Text)  # JSON 格式存储费用明细
-    totalEstimated = Column(Float, default=0)
-    totalActual = Column(Float, default=0)
-    status = Column(String(20), default="draft")  # draft/submitted/approved
-    submittedAt = Column(DateTime)
-    approvedBy = Column(Integer)
-    approvedAt = Column(DateTime)
-    createdAt = Column(DateTime, server_default=func.now())
-    updatedAt = Column(DateTime, server_default=func.now())
+    user_id = Column(Integer, index=True, nullable=False)
+    trip_id = Column(Integer, index=True)
+    expenses = Column(Text)
+    total_estimated = Column(Float, default=0)
+    total_actual = Column(Float, default=0)
+    status = Column(String(20), default="draft")
+    submitted_at = Column(DateTime)
+    approved_by = Column(Integer)
+    approved_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())

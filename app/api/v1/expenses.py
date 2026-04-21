@@ -49,9 +49,9 @@ async def create_expense(
 ):
     """创建报销单"""
     expense = await expense_claim_service.create(db, {
-        **data.model_dump(),
-        "userId": current_user.id,
-        "expenses": json.dumps([e.model_dump() for e in data.expenses]) if data.expenses else "[]"
+        **data.model_dump(by_alias=False),
+        "user_id": current_user.id,
+        "expenses": json.dumps([e.model_dump(by_alias=False) for e in data.expenses]) if data.expenses else "[]"
     })
     return ResponseModel(data=expense)
 
@@ -67,14 +67,14 @@ async def update_expense(
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
         raise HTTPException(status_code=404, detail="报销单不存在")
-    if expense.userId != current_user.id:
+    if expense.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if expense.status != "draft":
         raise HTTPException(status_code=400, detail="只能修改草稿状态的报销单")
 
-    update_data = data.model_dump(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True, by_alias=False)
     if data.expenses:
-        update_data["expenses"] = json.dumps([e.model_dump() for e in data.expenses])
+        update_data["expenses"] = json.dumps([e.model_dump(by_alias=False) for e in data.expenses])
 
     updated = await expense_claim_service.update(db, expense_id, update_data)
     return ResponseModel(data=updated)
@@ -90,7 +90,7 @@ async def submit_expense(
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
         raise HTTPException(status_code=404, detail="报销单不存在")
-    if expense.userId != current_user.id:
+    if expense.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if expense.status != "draft":
         raise HTTPException(status_code=400, detail="只能提交草稿状态的报销单")
@@ -125,7 +125,7 @@ async def delete_expense(
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
         raise HTTPException(status_code=404, detail="报销单不存在")
-    if expense.userId != current_user.id:
+    if expense.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权限")
     if expense.status != "draft":
         raise HTTPException(status_code=400, detail="只能删除草稿状态的报销单")

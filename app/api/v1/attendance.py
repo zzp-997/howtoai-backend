@@ -105,7 +105,7 @@ async def create_makeup_request(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """创建补卡申请"""
-    request = await makeup_request_service.create(db, {**data.model_dump(), "userId": current_user.id})
+    request = await makeup_request_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=request)
 
 

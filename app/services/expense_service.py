@@ -19,21 +19,21 @@ class ExpenseClaimService(BaseService[ExpenseClaim]):
     async def find_by_user(self, db: AsyncSession, user_id: int) -> List[ExpenseClaim]:
         """查询用户报销单"""
         result = await db.execute(
-            select(ExpenseClaim).where(ExpenseClaim.userId == user_id).order_by(ExpenseClaim.createdAt.desc())
+            select(ExpenseClaim).where(ExpenseClaim.user_id == user_id).order_by(ExpenseClaim.created_at.desc())
         )
         return result.scalars().all()
 
     async def find_by_trip(self, db: AsyncSession, trip_id: int) -> Optional[ExpenseClaim]:
         """按差旅ID查询"""
         result = await db.execute(
-            select(ExpenseClaim).where(ExpenseClaim.tripId == trip_id)
+            select(ExpenseClaim).where(ExpenseClaim.trip_id == trip_id)
         )
         return result.scalar_one_or_none()
 
     async def find_by_status(self, db: AsyncSession, status: str) -> List[ExpenseClaim]:
         """按状态查询"""
         result = await db.execute(
-            select(ExpenseClaim).where(ExpenseClaim.status == status).order_by(ExpenseClaim.createdAt.desc())
+            select(ExpenseClaim).where(ExpenseClaim.status == status).order_by(ExpenseClaim.created_at.desc())
         )
         return result.scalars().all()
 
@@ -41,17 +41,17 @@ class ExpenseClaimService(BaseService[ExpenseClaim]):
         """提交报销单"""
         return await self.update(db, id, {
             "status": "submitted",
-            "submittedAt": datetime.now(),
-            "updatedAt": datetime.now()
+            "submitted_at": datetime.now(),
+            "updated_at": datetime.now()
         })
 
     async def approve(self, db: AsyncSession, id: int, approver_id: int) -> Optional[ExpenseClaim]:
         """审批报销单"""
         return await self.update(db, id, {
             "status": "approved",
-            "approvedBy": approver_id,
-            "approvedAt": datetime.now(),
-            "updatedAt": datetime.now()
+            "approved_by": approver_id,
+            "approved_at": datetime.now(),
+            "updated_at": datetime.now()
         })
 
 

@@ -37,7 +37,7 @@ async def create_document_category(
     """创建文档分类（管理员）"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
-    category = await document_category_service.create(db, data.model_dump())
+    category = await document_category_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=category)
 
 
@@ -82,8 +82,8 @@ async def create_document(
     """上传文档"""
     import json
     document = await document_service.create(db, {
-        **data.model_dump(),
-        "uploadBy": current_user.id,
+        **data.model_dump(by_alias=False),
+        "upload_by": current_user.id,
         "tags": json.dumps(data.tags) if data.tags else None
     })
     return ResponseModel(data=document)
@@ -99,7 +99,7 @@ async def delete_document(
     document = await document_service.get_by_id(db, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="文档不存在")
-    if document.uploadBy != current_user.id and current_user.role != "admin":
+    if document.upload_by != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
 
     await document_service.delete(db, document_id)

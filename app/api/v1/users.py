@@ -24,7 +24,7 @@ async def get_users(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="无权限")
 
-    result = await db.execute(select(User).where(User.isActive == True))
+    result = await db.execute(select(User).where(User.is_active == True))
     users = result.scalars().all()
     return ResponseModel(data=[UserResponse.model_validate(u) for u in users])
 
@@ -61,7 +61,7 @@ async def update_user(
         raise HTTPException(status_code=404, detail="用户不存在")
 
     # 更新字段
-    update_data = data.model_dump(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True, by_alias=False)
     for key, value in update_data.items():
         setattr(user, key, value)
 

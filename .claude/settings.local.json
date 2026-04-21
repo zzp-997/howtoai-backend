@@ -3,7 +3,13 @@
     "allow": [
       "Bash(pip uninstall:*)",
       "Bash(pip install:*)",
-      "Bash(python run.py)"
+      "Bash(python run.py)",
+      "Bash(pip list *)",
+      "Bash(ssh *)",
+      "Bash(curl -s --connect-timeout 5 http://118.25.182.15 -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s --connect-timeout 5 http://118.25.182.15:3306 -o /dev/null -w \"%{http_code}\")",
+      "Bash(ls *)",
+      "Bash(find D:/coderzzp/howtoai-backend -name \"__pycache__\" -type d -exec rm -rf {} +)"
     ]
   }
 }
