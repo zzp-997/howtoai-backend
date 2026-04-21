@@ -1,6 +1,8 @@
 # 极智协同 - FastAPI 后端
 
-基于 FastAPI + Supabase PostgreSQL 的后端服务。
+![Deploy](https://github.com/zzp-997/howtoai-backend/actions/workflows/deploy.yml/badge.svg)
+
+基于 FastAPI + MySQL 的后端服务。
 
 ## 项目结构
 
