@@ -46,6 +46,11 @@ jobs:
             cp /root/howtoai-backend/requirements.txt /opt/howtoai/backend/
             cp /root/howtoai-backend/Dockerfile /opt/howtoai/backend/
 
+            # 同步配置文件（nginx 配置和 docker-compose）
+            echo "📋 同步配置文件..."
+            cp /root/howtoai-backend/deploy/nginx/nginx.conf /opt/howtoai/nginx/
+            cp /root/howtoai-backend/deploy/docker-compose.yml /opt/howtoai/
+
             # 写入版本信息
             echo "📝 写入版本信息..."
             echo "commit: ${{ steps.version.outputs.commit_hash }}" > /opt/howtoai/backend/VERSION
