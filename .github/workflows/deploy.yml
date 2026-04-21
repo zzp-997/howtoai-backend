@@ -58,10 +58,15 @@ jobs:
             echo "deploy_time: ${{ steps.version.outputs.deploy_time }}" >> /opt/howtoai/backend/VERSION
             echo "deployer: ${{ steps.version.outputs.deployer }}" >> /opt/howtoai/backend/VERSION
 
-            # 构建并启动
+            # 构建并启动（确保所有服务在正确网络中）
             echo "🔨 构建容器..."
             cd /opt/howtoai
-            docker compose up -d --build backend
+
+            # 确保网络存在
+            docker network create howtoai-network 2>/dev/null || true
+
+            # 启动所有服务（确保网络连接正确）
+            docker compose up -d --build backend nginx
 
             # 等待启动
             sleep 15
