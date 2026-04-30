@@ -24,6 +24,11 @@ class User(Base):
     sick_leave_balance = Column(Float, default=0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
+    # 安全模块扩展字段
+    login_fail_count = Column(Integer, default=0, comment='连续登录失败次数')
+    locked_until = Column(DateTime, comment='账户锁定截止时间')
+    password_changed_at = Column(DateTime, comment='密码最后修改时间')
+    password_history = Column(JSON, comment='历史密码哈希列表')
 
 
 class MeetingRoom(Base):

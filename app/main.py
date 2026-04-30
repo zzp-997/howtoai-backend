@@ -10,6 +10,8 @@ from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
 from app.api import api_router
 from app.schemas.common import ResponseModel
+from app.core.redis_client import redis_client
+from app.core.security_module.rate_limit_middleware_fastapi import RateLimitMiddleware
 
 
 # 创建应用
@@ -79,6 +81,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ==================== 安全模块初始化 ====================
+
+# 初始化限流中间件
+RateLimitMiddleware.init_app(app)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """启动时初始化安全模块"""
+    # 连接Redis（如果启用）
+    if settings.REDIS_ENABLED:
+        await redis_client.connect()
+    print(f"安全模块初始化完成 - Redis状态: {'已连接' if redis_client.is_connected() else '使用内存缓存'}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """关闭时清理资源"""
+    if redis_client.is_connected():
+        await redis_client.disconnect()
+    print("安全模块资源已释放")
 
 
 # ==================== 注册路由 ====================
