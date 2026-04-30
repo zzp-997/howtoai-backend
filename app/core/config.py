@@ -4,6 +4,15 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import json
+import os
+
+
+def get_env_file() -> str:
+    """获取环境配置文件路径，优先使用 .env.local"""
+    local_env = ".env.local"
+    if os.path.exists(local_env):
+        return local_env
+    return ".env"
 
 
 class Settings(BaseSettings):
@@ -37,7 +46,7 @@ class Settings(BaseSettings):
             return ["*"]
 
     class Config:
-        env_file = ".env"
+        env_file = get_env_file()
         extra = "ignore"
 
 

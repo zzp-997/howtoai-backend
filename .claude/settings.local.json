@@ -11,7 +11,14 @@
       "Bash(ls *)",
       "Bash(find D:/coderzzp/howtoai-backend -name \"__pycache__\" -type d -exec rm -rf {} +)",
       "Bash(rm -f D:/coderzzp/howtoai-backend/.claude/plans/deployment-plan.md)",
-      "Bash(rmdir D:/coderzzp/howtoai-backend/.claude/plans)"
+      "Bash(rmdir D:/coderzzp/howtoai-backend/.claude/plans)",
+      "Bash(scp *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(tasklist *)",
+      "Bash(wmic process *)",
+      "Bash(taskkill *)",
+      "Bash(curl *)"
     ]
   }
 }
