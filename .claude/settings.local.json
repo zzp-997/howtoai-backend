@@ -40,7 +40,9 @@
       "Bash(net start:*)",
       "Bash(docker-compose up:*)",
       "Read(//c/Program Files/Docker/Docker/**)",
-      "Read(//c/Program Files/Docker/**)"
+      "Read(//c/Program Files/Docker/**)",
+      "Bash(error\")",
+      "Bash(git push:*)"
     ]
   }
 }
