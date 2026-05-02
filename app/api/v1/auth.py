@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["认证"])
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_client_ip(request: Request) -> str:
@@ -44,6 +44,14 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
     """获取当前用户"""
+    # 如果没有提供 Authorization header，返回 401
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证令牌，请先登录",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     token = credentials.credentials
 
     # 验证Token（包括黑名单检查）
