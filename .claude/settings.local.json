@@ -42,7 +42,12 @@
       "Read(//c/Program Files/Docker/Docker/**)",
       "Read(//c/Program Files/Docker/**)",
       "Bash(error\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
