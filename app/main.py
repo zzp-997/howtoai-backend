@@ -24,16 +24,34 @@ app = FastAPI(
 
 # ==================== 统一异常处理 ====================
 
+def _build_cors_headers(request: Request) -> dict:
+    """构建CORS响应头"""
+    origin = request.headers.get("origin", "")
+    allow_origins = settings.cors_origins_list
+    if origin and (origin in allow_origins or "*" in allow_origins):
+        return {
+            "Access-Control-Allow-Origin": origin if origin in allow_origins else "*",
+            "Access-Control-Allow-Methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "600",
+            "Vary": "Origin",
+        }
+    return {}
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """处理 FastAPI HTTP 异常"""
+    headers = _build_cors_headers(request)
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "code": exc.status_code,
             "message": exc.detail,
             "data": None
-        }
+        },
+        headers=headers,
     )
 
 
@@ -48,26 +66,30 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     else:
         msg = "请求参数错误"
 
+    headers = _build_cors_headers(request)
     return JSONResponse(
         status_code=422,
         content={
             "code": 422,
             "message": msg,
             "data": None
-        }
+        },
+        headers=headers,
     )
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """处理未知异常"""
+    headers = _build_cors_headers(request)
     return JSONResponse(
         status_code=500,
         content={
             "code": 500,
             "message": str(exc) if settings.DEBUG else "服务器内部错误",
             "data": None
-        }
+        },
+        headers=headers,
     )
 
 
@@ -79,6 +101,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
