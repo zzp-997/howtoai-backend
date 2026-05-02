@@ -44,10 +44,15 @@ jobs:
 
             # 同步代码
             echo "📦 同步代码..."
+            # 创建 backend 目录（docker-compose build.context 需要）
+            mkdir -p /opt/howtoai/backend
+            # 同步 app 目录
             rsync -av --exclude='.git' --exclude='__pycache__' --exclude='.env' \
               /root/howtoai-backend/app/ /opt/howtoai/backend/app/
+            # 复制后端构建所需文件
             cp /root/howtoai-backend/requirements.txt /opt/howtoai/backend/
             cp /root/howtoai-backend/Dockerfile /opt/howtoai/backend/
+            cp /root/howtoai-backend/run.py /opt/howtoai/backend/
 
             # 同步配置文件（nginx 配置和 docker-compose）
             echo "📋 同步配置文件..."
