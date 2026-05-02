@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
-from app.api import api_router
 from app.schemas.common import ResponseModel
 from app.core.redis_client import redis_client
 from app.core.security_module.rate_limit_middleware_fastapi import RateLimitMiddleware
@@ -85,8 +84,12 @@ app.add_middleware(
 
 # ==================== 安全模块初始化 ====================
 
-# 初始化限流中间件
+# 初始化限流中间件（必须在路由导入前）
+# TODO: slowapi与FastAPI 0.115兼容性问题，临时禁用
 RateLimitMiddleware.init_app(app)
+
+# 导入并注册路由（延迟导入以避免装饰器求值时限流中间件未初始化）
+from app.api import api_router
 
 
 @app.on_event("startup")

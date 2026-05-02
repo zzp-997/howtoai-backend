@@ -14,6 +14,12 @@ from app.api.v1.announcements import router as announcement_router
 from app.api.v1.documents import router as document_router
 from app.api.v1.expenses import router as expense_router
 from app.api.v1.configs import router as config_router
+from app.api.v1.approval import router as approval_router
+from app.api.v1.message import router as message_router
+from app.api.v1.feedback import router as feedback_router
+from app.api.v1.stats import router as stats_router
+from app.api.v1.knowledge import router as knowledge_router
+from app.api.v1.task import router as task_router
 
 # v1 版本路由
 api_router = APIRouter(prefix="/v1")
@@ -29,5 +35,11 @@ api_router.include_router(announcement_router)
 api_router.include_router(document_router)
 api_router.include_router(expense_router)
 api_router.include_router(config_router)
+api_router.include_router(approval_router)
+api_router.include_router(message_router)
+api_router.include_router(feedback_router)
+api_router.include_router(stats_router)
+api_router.include_router(knowledge_router)
+api_router.include_router(task_router)
 
 __all__ = ["api_router"]

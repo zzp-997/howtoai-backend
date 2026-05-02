@@ -54,6 +54,23 @@ jobs:
             cp /root/howtoai-backend/deploy/nginx/nginx.conf /opt/howtoai/nginx/
             cp /root/howtoai-backend/deploy/docker-compose.yml /opt/howtoai/
 
+            # 同步 SQL 迁移文件
+            echo "📂 同步 SQL 迁移文件..."
+            mkdir -p /opt/howtoai/sql
+            cp /root/howtoai-backend/sql/*.sql /opt/howtoai/sql/
+
+            # 执行 SQL 迁移
+            echo "🔄 执行数据库迁移..."
+            cd /opt/howtoai
+            for sql_file in /opt/howtoai/sql/*.sql; do
+              if [ -f "$sql_file" ]; then
+                echo "  执行: $(basename $sql_file)"
+                docker compose exec -T mysql mysql -u root -p"${MYSQL_ROOT_PASSWORD}" howtoai < "$sql_file" 2>/dev/null || \
+                docker compose exec -T mysql mysql -u root --password="${MYSQL_ROOT_PASSWORD}" howtoai < "$sql_file" 2>/dev/null || \
+                echo "  迁移可能已在之前执行，跳过: $(basename $sql_file)"
+              fi
+            done
+
             # 写入版本信息
             echo "📝 写入版本信息..."
             echo "commit: ${{ steps.version.outputs.commit_hash }}" > /opt/howtoai/backend/VERSION

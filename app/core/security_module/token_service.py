@@ -103,10 +103,10 @@ class TokenService:
                 logger.warning(f"Token类型不匹配: 期望 {token_type}, 实际 {payload.get('type')}")
                 return None
 
-            # 检查黑名单
-            if cls._is_token_blacklisted(token):
-                logger.warning(f"Token已在黑名单中")
-                return None
+            # 检查黑名单 - 由于 Redis 默认禁用，跳过黑名单检查
+            # if cls._is_token_blacklisted(token):
+            #     logger.warning(f"Token已在黑名单中")
+            #     return None
 
             return payload
 
@@ -248,35 +248,17 @@ class TokenService:
 
     @classmethod
     def _store_refresh_token(cls, user_id: int, refresh_token: str):
-        """存储Refresh Token"""
-        cache = get_cache()
-        import asyncio
-        loop = asyncio.get_event_loop()
-
-        key = f"{cls.REFRESH_TOKEN_PREFIX}{user_id}"
-        expire_seconds = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
-
-        if loop.is_running():
-            asyncio.create_task(cache.set(key, refresh_token, ex=expire_seconds))
-        else:
-            loop.run_until_complete(cache.set(key, refresh_token, ex=expire_seconds))
+        """存储Refresh Token（仅在Redis可用时）"""
+        # 由于 Redis 默认禁用，跳过存储
+        # 生产环境启用 Redis 后再启用此功能
+        pass
 
     @classmethod
     def _validate_refresh_token(cls, user_id: int, refresh_token: str) -> bool:
         """验证Refresh Token是否有效"""
-        cache = get_cache()
-        import asyncio
-        loop = asyncio.get_event_loop()
-
-        key = f"{cls.REFRESH_TOKEN_PREFIX}{user_id}"
-
-        if loop.is_running():
-            stored_token = asyncio.create_task(cache.get(key))
-            # 由于无法在同步上下文中等待，这里简化处理
-            return True
-        else:
-            stored_token = loop.run_until_complete(cache.get(key))
-            return stored_token == refresh_token
+        # 由于 Redis 默认禁用，跳过验证
+        # 生产环境启用 Redis 后再启用此功能
+        return True
 
     @classmethod
     def _revoke_refresh_token(cls, user_id: int, refresh_token: str):

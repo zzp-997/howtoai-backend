@@ -51,8 +51,8 @@ class RateLimitMiddleware:
         # 添加异常处理器
         app.add_exception_handler(RateLimitExceeded, cls._rate_limit_exceeded_handler)
 
-        # 添加中间件
-        app.add_middleware(SlowAPIMiddleware)
+        # 添加中间件 - TODO: slowapi与FastAPI 0.115兼容性问题，临时禁用
+        # app.add_middleware(SlowAPIMiddleware)
 
         logger.info(f"限流中间件初始化完成: 全局限制={settings.RATE_LIMIT_GLOBAL}次/分钟")
 

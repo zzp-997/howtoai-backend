@@ -54,7 +54,10 @@ class LoginRequest(BaseModel):
 
 class LoginData(CamelModel):
     """登录数据"""
-    token: str
+    accessToken: str
+    refreshToken: Optional[str] = None
+    tokenType: str = "Bearer"
+    expiresIn: int = 1440
     user: UserResponse
 
 

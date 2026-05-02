@@ -22,6 +22,12 @@ from app.services.config_service import (
     CityConfigService, city_config_service,
     HolidayConfigService, holiday_config_service
 )
+from app.services.approval_service import ApprovalService, approval_service
+from app.services.message_service import MessageService, message_service
+from app.services.feedback_service import FeedbackService, feedback_service
+from app.services.stats_service import StatsService, stats_service
+from app.services.knowledge_service import KnowledgeService, knowledge_service
+from app.services.task_service import TaskService, task_service
 
 __all__ = [
     "BaseService",
@@ -43,4 +49,16 @@ __all__ = [
     "TripTemplateService", "trip_template_service",
     "CityConfigService", "city_config_service",
     "HolidayConfigService", "holiday_config_service",
+    # 审批服务
+    "ApprovalService", "approval_service",
+    # 消息服务
+    "MessageService", "message_service",
+    # 反馈服务
+    "FeedbackService", "feedback_service",
+    # 统计服务
+    "StatsService", "stats_service",
+    # 知识库服务
+    "KnowledgeService", "knowledge_service",
+    # 任务服务
+    "TaskService", "task_service",
 ]

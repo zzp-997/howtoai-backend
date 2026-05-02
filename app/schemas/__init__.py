@@ -41,6 +41,38 @@ from app.schemas.config import (
     CityConfigBase, CityConfigCreate, CityConfigUpdate, CityConfigResponse,
     HolidayConfigBase, HolidayConfigCreate, HolidayConfigUpdate, HolidayConfigResponse
 )
+from app.schemas.approval import (
+    ApprovalChainCreate, ApprovalChainUpdate, ApprovalChainResponse,
+    ApprovalNodeCreate, ApprovalNodeResponse,
+    ApprovalRequestCreate, ApprovalRequestResponse,
+    ApprovalRecordResponse, ApprovalReminderResponse,
+    ApprovalChainQuery, ApprovalRequestQuery
+)
+from app.schemas.message import (
+    MessageBase, MessageCreate, MessageResponse, MessageQuery
+)
+from app.schemas.feedback import (
+    FeedbackBase, FeedbackCreate, FeedbackResponse, FeedbackReplySchema, FeedbackQuerySchema
+)
+from app.schemas.stats import (
+    MeetingStatsResponse, AttendanceStatsResponse, ApprovalStatsResponse,
+    DashboardStatsResponse, ExportRequest, ExportResponse, UserStatsResponse
+)
+from app.schemas.knowledge import (
+    KnowledgeCategoryCreate, KnowledgeCategoryUpdate, KnowledgeCategoryResponse,
+    KnowledgeArticleCreate, KnowledgeArticleUpdate, KnowledgeArticleResponse,
+    KnowledgeArticleListResponse, KnowledgeSearchQuery, KnowledgeSearchResult,
+    KnowledgeArticleLikeResponse, KnowledgeArticleViewResponse
+)
+from app.schemas.task import (
+    TaskBase, TaskCreate, TaskUpdate, TaskStatusUpdate, TaskAssigneesUpdate,
+    TaskWatchersUpdate, TaskWatchUpdate, TaskResponse, TaskListResponse, TaskQuery,
+    SubtaskCreate, SubtaskUpdate, SubtaskResponse,
+    CommentCreate, CommentUpdate, CommentResponse, CommentListResponse,
+    ActivityResponse, ActivityListResponse,
+    BatchStatusUpdate, BatchDelete, BatchResult,
+    TaskStatsResponse, KanbanStatsResponse, UserTaskStatsResponse
+)
 
 __all__ = [
     # 通用
@@ -73,4 +105,30 @@ __all__ = [
     "TripTemplateBase", "TripTemplateCreate", "TripTemplateUpdate", "TripTemplateResponse",
     "CityConfigBase", "CityConfigCreate", "CityConfigUpdate", "CityConfigResponse",
     "HolidayConfigBase", "HolidayConfigCreate", "HolidayConfigUpdate", "HolidayConfigResponse",
+    # 审批
+    "ApprovalChainCreate", "ApprovalChainUpdate", "ApprovalChainResponse",
+    "ApprovalNodeCreate", "ApprovalNodeResponse",
+    "ApprovalRequestCreate", "ApprovalRequestResponse",
+    "ApprovalRecordResponse", "ApprovalReminderResponse",
+    "ApprovalChainQuery", "ApprovalRequestQuery",
+    # 消息
+    "MessageBase", "MessageCreate", "MessageResponse", "MessageQuery",
+    # 反馈
+    "FeedbackBase", "FeedbackCreate", "FeedbackResponse", "FeedbackReplySchema", "FeedbackQuerySchema",
+    # 统计
+    "MeetingStatsResponse", "AttendanceStatsResponse", "ApprovalStatsResponse",
+    "DashboardStatsResponse", "ExportRequest", "ExportResponse", "UserStatsResponse",
+    # 知识库
+    "KnowledgeCategoryCreate", "KnowledgeCategoryUpdate", "KnowledgeCategoryResponse",
+    "KnowledgeArticleCreate", "KnowledgeArticleUpdate", "KnowledgeArticleResponse",
+    "KnowledgeArticleListResponse", "KnowledgeSearchQuery", "KnowledgeSearchResult",
+    "KnowledgeArticleLikeResponse", "KnowledgeArticleViewResponse",
+    # 任务
+    "TaskBase", "TaskCreate", "TaskUpdate", "TaskStatusUpdate", "TaskAssigneesUpdate",
+    "TaskWatchersUpdate", "TaskWatchUpdate", "TaskResponse", "TaskListResponse", "TaskQuery",
+    "SubtaskCreate", "SubtaskUpdate", "SubtaskResponse",
+    "CommentCreate", "CommentUpdate", "CommentResponse", "CommentListResponse",
+    "ActivityResponse", "ActivityListResponse",
+    "BatchStatusUpdate", "BatchDelete", "BatchResult",
+    "TaskStatsResponse", "KanbanStatsResponse", "UserTaskStatsResponse",
 ]

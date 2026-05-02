@@ -9,7 +9,7 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from app.core.security_module.login_limit_service import LoginLimitService
 from app.core.security_module.token_service import TokenService
 from app.core.security_module.password_service import PasswordService
-from app.core.security_module.audit_service import AuditService
+from app.core.security_module.audit_service_v2 import AuditServiceV2
 from typing import Optional, Dict
 import logging
 
@@ -56,14 +56,19 @@ class AuthService:
 
         if not user:
             # 用户不存在，仍记录失败日志（但不暴露具体原因）
-            await AuditService.log_login(0, "failed", ip_address, "用户不存在")
+            await AuditServiceV2.log_login(db, 0, "failed", ip_address, "用户不存在")
             return {
                 "success": False,
                 "message": "用户名或密码错误",
                 "locked": False
             }
 
+        # 提前提取所有需要的数据，避免延迟加载问题
         user_id = user.id
+        user_username = user.username
+        user_role = user.role
+        user_password = user.password
+        user_password_changed_at = user.__dict__.get('password_changed_at')
 
         # 2. 检查账户锁定状态
         is_locked, remaining_seconds = await LoginLimitService.check_account_locked(user_id)
@@ -76,10 +81,10 @@ class AuthService:
             }
 
         # 3. 验证密码
-        if not verify_password(password, user.password):
+        if not verify_password(password, user_password):
             # 记录登录失败
             fail_result = await LoginLimitService.record_login_failure(user_id, ip_address)
-            await AuditService.log_login(user_id, "failed", ip_address, "密码错误")
+            await AuditServiceV2.log_login(db, user_id, "failed", ip_address, "密码错误")
 
             return {
                 "success": False,
@@ -91,19 +96,35 @@ class AuthService:
 
         # 4. 登录成功 - 清除失败计数
         await LoginLimitService.record_login_success(user_id)
-        await AuditService.log_login(user_id, "success", ip_address)
+        await AuditServiceV2.log_login(db, user_id, "success", ip_address)
 
         # 5. 检查密码过期状态
-        password_changed_at = getattr(user, 'password_changed_at', None)
-        expiry_status = PasswordService.check_password_expiry(password_changed_at)
+        expiry_status = PasswordService.check_password_expiry(user_password_changed_at)
 
         # 6. 生成双Token
         token_result = TokenService.generate_tokens(user_id, {
-            "username": user.username,
-            "role": user.role
+            "username": user_username,
+            "role": user_role
         })
 
         logger.info(f"用户 {user_id} 登录成功")
+
+        # 构建用户信息字典
+        user_dict = {
+            "id": user_id,
+            "username": user_username,
+            "role": user_role,
+            "name": user.__dict__.get('name'),
+            "department": user.__dict__.get('department'),
+            "position": user.__dict__.get('position'),
+            "phone": user.__dict__.get('phone'),
+            "email": user.__dict__.get('email'),
+            "avatar": user.__dict__.get('avatar'),
+            "annual_leave_balance": user.__dict__.get('annual_leave_balance'),
+            "sick_leave_balance": user.__dict__.get('sick_leave_balance'),
+            "is_active": user.__dict__.get('is_active'),
+            "created_at": user.__dict__.get('created_at'),
+        }
 
         return {
             "success": True,
@@ -113,7 +134,7 @@ class AuthService:
                 "refreshToken": token_result["refreshToken"],
                 "tokenType": token_result["tokenType"],
                 "expiresIn": token_result["expiresIn"],
-                "user": UserResponse.model_validate(user),
+                "user": user_dict,
                 "passwordExpiry": expiry_status if expiry_status["expiring_soon"] else None
             }
         }
@@ -139,11 +160,12 @@ class AuthService:
             "message": "Refresh Token无效或已过期"
         }
 
-    async def logout(self, token: str, refresh_token: Optional[str] = None, user_id: int = None):
+    async def logout(self, db: AsyncSession, token: str, refresh_token: Optional[str] = None, user_id: int = None):
         """
         登出 - 撤销Token
 
         Args:
+            db: 数据库会话
             token: Access Token
             refresh_token: Refresh Token（可选）
             user_id: 用户ID
@@ -152,7 +174,7 @@ class AuthService:
         if refresh_token:
             TokenService.revoke_token(refresh_token, user_id)
 
-        await AuditService.log_operation("logout", user_id=user_id)
+        await AuditServiceV2.log_operation(db, "logout", user_id=user_id)
 
         logger.info(f"用户 {user_id} 登出成功")
 
@@ -207,7 +229,7 @@ class AuthService:
         # 撤销所有Token（强制重新登录）
         TokenService.revoke_all_user_tokens(user_id)
 
-        await AuditService.log_operation("password_change", user_id=user_id)
+        await AuditServiceV2.log_operation(db, "password_change", user_id=user_id)
 
         logger.info(f"用户 {user_id} 修改密码成功")
 

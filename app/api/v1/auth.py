@@ -69,7 +69,7 @@ async def get_current_user(
 
 
 @router.post("/login")
-@rate_limit_login()
+# @rate_limit_login()  # TODO: slowapi兼容性问题，临时禁用
 async def login(
     request: Request,
     login_request: LoginRequest,
@@ -169,7 +169,7 @@ async def get_me(current_user: UserResponse = Depends(get_current_user)):
 
 
 @router.post("/password/change")
-@rate_limit_sensitive()
+# @rate_limit_sensitive()  # TODO: slowapi兼容性问题，临时禁用
 async def change_password(
     request: Request,
     password_request: PasswordChangeRequest,

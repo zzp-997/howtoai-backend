@@ -32,3 +32,7 @@ class PaginationModel(BaseModel, Generic[T]):
     total: int
     page: int
     page_size: int
+
+
+# 别名兼容
+PageResponse = PaginationModel
