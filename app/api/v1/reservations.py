@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.schemas import (
     ReservationCreate, ReservationUpdate, ReservationResponse, ConflictCheck, ResponseModel
 )
@@ -48,7 +50,7 @@ async def get_reservation(
     """获取预定详情"""
     reservation = await reservation_service.get_by_id(db, reservation_id)
     if not reservation:
-        raise HTTPException(status_code=404, detail="预定不存在")
+        raise BizException(ErrorCode.RESERVATION_NOT_FOUND)
     return ResponseModel(data=reservation)
 
 
@@ -62,7 +64,7 @@ async def create_reservation(
     # 检查冲突
     conflict = await reservation_service.check_conflict(db, data.room_id, data.start_time, data.end_time)
     if conflict:
-        raise HTTPException(status_code=400, detail=f"时间冲突，与预定 {conflict.id} 冲突")
+        raise BizException(ErrorCode.RESERVATION_CONFLICT, f"时间冲突，与预定 {conflict.id} 冲突")
 
     reservation = await reservation_service.create(db, {
         **data.model_dump(by_alias=False),
@@ -94,9 +96,9 @@ async def update_reservation(
     """更新预定"""
     reservation = await reservation_service.get_by_id(db, reservation_id)
     if not reservation:
-        raise HTTPException(status_code=404, detail="预定不存在")
+        raise BizException(ErrorCode.RESERVATION_NOT_FOUND)
     if reservation.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     # 检查冲突
     if data.start_time and data.end_time:
@@ -104,7 +106,7 @@ async def update_reservation(
             db, reservation.room_id, data.start_time, data.end_time, reservation_id
         )
         if conflict:
-            raise HTTPException(status_code=400, detail="时间冲突")
+            raise BizException(ErrorCode.RESERVATION_CONFLICT)
 
     updated = await reservation_service.update(db, reservation_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
@@ -119,9 +121,9 @@ async def cancel_reservation(
     """取消预定"""
     reservation = await reservation_service.get_by_id(db, reservation_id)
     if not reservation:
-        raise HTTPException(status_code=404, detail="预定不存在")
+        raise BizException(ErrorCode.RESERVATION_NOT_FOUND)
     if reservation.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     await reservation_service.update(db, reservation_id, {"status": "cancelled"})
     return ResponseModel(message="取消成功")

@@ -1,7 +1,9 @@
 """
 待办事项 API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
@@ -58,7 +60,7 @@ async def get_todo(
     """获取待办详情"""
     todo = await todo_service.get_by_id(db, todo_id)
     if not todo or todo.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise BizException(ErrorCode.TODO_NOT_FOUND)
     return ResponseModel(data=todo)
 
 
@@ -83,7 +85,7 @@ async def update_todo(
     """更新待办"""
     todo = await todo_service.get_by_id(db, todo_id)
     if not todo or todo.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise BizException(ErrorCode.TODO_NOT_FOUND)
 
     updated = await todo_service.update(db, todo_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
@@ -98,7 +100,7 @@ async def toggle_todo(
     """切换待办完成状态"""
     todo = await todo_service.get_by_id(db, todo_id)
     if not todo or todo.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise BizException(ErrorCode.TODO_NOT_FOUND)
 
     updated = await todo_service.toggle_complete(db, todo_id)
     return ResponseModel(data=updated)
@@ -113,7 +115,7 @@ async def delete_todo(
     """删除待办"""
     todo = await todo_service.get_by_id(db, todo_id)
     if not todo or todo.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise BizException(ErrorCode.TODO_NOT_FOUND)
 
     await todo_service.delete(db, todo_id)
     return ResponseModel(message="删除成功")

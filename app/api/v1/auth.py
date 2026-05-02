@@ -14,6 +14,8 @@ from app.schemas.security import (
     PasswordExpiryStatus, PasswordSuggestions
 )
 from app.schemas.common import ResponseModel
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.services.auth_service import auth_service
 from app.core.security_module.password_service import PasswordService
 from app.core.security_module.token_service import TokenService
@@ -252,7 +254,7 @@ async def get_password_expiry_status(
     """
     user = await auth_service.get_by_id(db, current_user.id)
     if not user:
-        return ResponseModel(code=404, message="用户不存在", data=None)
+        raise BizException(ErrorCode.USER_NOT_FOUND)
 
     password_changed_at = getattr(user, 'password_changed_at', None)
     expiry_status = PasswordService.check_password_expiry(password_changed_at)

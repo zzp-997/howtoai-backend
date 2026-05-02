@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import json
 from app.core.database import get_db
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.schemas import ExpenseClaimCreate, ExpenseClaimUpdate, ExpenseClaimResponse, ResponseModel
 from app.services import expense_claim_service
 from app.api.v1.auth import get_current_user
@@ -37,7 +39,7 @@ async def get_expense(
     """获取报销单详情"""
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
-        raise HTTPException(status_code=404, detail="报销单不存在")
+        raise BizException(ErrorCode.EXPENSE_NOT_FOUND)
     return ResponseModel(data=expense)
 
 
@@ -66,11 +68,11 @@ async def update_expense(
     """更新报销单"""
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
-        raise HTTPException(status_code=404, detail="报销单不存在")
+        raise BizException(ErrorCode.EXPENSE_NOT_FOUND)
     if expense.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if expense.status != "draft":
-        raise HTTPException(status_code=400, detail="只能修改草稿状态的报销单")
+        raise BizException(ErrorCode.EXPENSE_STATUS_INVALID)
 
     update_data = data.model_dump(exclude_unset=True, by_alias=False)
     if data.expenses:
@@ -89,11 +91,11 @@ async def submit_expense(
     """提交报销单"""
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
-        raise HTTPException(status_code=404, detail="报销单不存在")
+        raise BizException(ErrorCode.EXPENSE_NOT_FOUND)
     if expense.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if expense.status != "draft":
-        raise HTTPException(status_code=400, detail="只能提交草稿状态的报销单")
+        raise BizException(ErrorCode.EXPENSE_STATUS_INVALID)
 
     updated = await expense_claim_service.submit(db, expense_id)
     return ResponseModel(data=updated, message="提交成功")
@@ -107,11 +109,11 @@ async def approve_expense(
 ):
     """审批报销单（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     expense = await expense_claim_service.approve(db, expense_id, current_user.id)
     if not expense:
-        raise HTTPException(status_code=404, detail="报销单不存在")
+        raise BizException(ErrorCode.EXPENSE_NOT_FOUND)
     return ResponseModel(data=expense, message="审批成功")
 
 
@@ -124,11 +126,11 @@ async def delete_expense(
     """删除报销单"""
     expense = await expense_claim_service.get_by_id(db, expense_id)
     if not expense:
-        raise HTTPException(status_code=404, detail="报销单不存在")
+        raise BizException(ErrorCode.EXPENSE_NOT_FOUND)
     if expense.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if expense.status != "draft":
-        raise HTTPException(status_code=400, detail="只能删除草稿状态的报销单")
+        raise BizException(ErrorCode.EXPENSE_STATUS_INVALID)
 
     await expense_claim_service.delete(db, expense_id)
     return ResponseModel(message="删除成功")

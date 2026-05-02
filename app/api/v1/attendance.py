@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.schemas import (
     AttendanceResponse, AttendanceStats, MakeUpRequestCreate, MakeUpRequestResponse, ResponseModel
 )
@@ -53,7 +55,7 @@ async def check_in(
         record = await attendance_service.check_in(db, current_user.id)
         return ResponseModel(data=record, message="打卡成功")
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.MAKEUP_OPERATION_FAILED, str(e))
 
 
 @router.post("/check-out", response_model=ResponseModel[AttendanceResponse])
@@ -66,7 +68,7 @@ async def check_out(
         record = await attendance_service.check_out(db, current_user.id)
         return ResponseModel(data=record, message="打卡成功")
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.MAKEUP_OPERATION_FAILED, str(e))
 
 
 @router.get("/stats", response_model=ResponseModel[AttendanceStats])
@@ -118,9 +120,9 @@ async def approve_makeup_request(
 ):
     """审批补卡申请（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     request = await makeup_request_service.approve(db, request_id, approved, current_user.id)
     if not request:
-        raise HTTPException(status_code=404, detail="补卡申请不存在")
+        raise BizException(ErrorCode.MAKEUP_NOT_FOUND)
     return ResponseModel(data=request)

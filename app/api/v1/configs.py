@@ -1,7 +1,9 @@
 """
 配置相关 API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
@@ -43,7 +45,7 @@ async def set_attendance_config(
 ):
     """设置考勤配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     config = await attendance_config_service.set_config(db, data.key, data.value)
     return ResponseModel(data=config, message="设置成功")
 
@@ -105,9 +107,9 @@ async def update_trip_template(
     """更新出差模板"""
     template = await trip_template_service.get_by_id(db, template_id)
     if not template:
-        raise HTTPException(status_code=404, detail="模板不存在")
+        raise BizException(ErrorCode.TEMPLATE_NOT_FOUND)
     if template.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     updated = await trip_template_service.update(db, template_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
 
@@ -121,9 +123,9 @@ async def delete_trip_template(
     """删除出差模板"""
     template = await trip_template_service.get_by_id(db, template_id)
     if not template:
-        raise HTTPException(status_code=404, detail="模板不存在")
+        raise BizException(ErrorCode.TEMPLATE_NOT_FOUND)
     if template.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     await trip_template_service.delete(db, template_id)
     return ResponseModel(message="删除成功")
 
@@ -153,7 +155,7 @@ async def get_city_config(
     """获取城市配置详情"""
     city = await city_config_service.get_by_id(db, city_id)
     if not city:
-        raise HTTPException(status_code=404, detail="城市不存在")
+        raise BizException(ErrorCode.CITY_NOT_FOUND)
     return ResponseModel(data=city)
 
 
@@ -165,7 +167,7 @@ async def create_city_config(
 ):
     """创建城市配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     city = await city_config_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=city)
 
@@ -179,10 +181,10 @@ async def update_city_config(
 ):
     """更新城市配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     city = await city_config_service.update(db, city_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not city:
-        raise HTTPException(status_code=404, detail="城市不存在")
+        raise BizException(ErrorCode.CITY_NOT_FOUND)
     return ResponseModel(data=city)
 
 
@@ -194,10 +196,10 @@ async def delete_city_config(
 ):
     """删除城市配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     success = await city_config_service.delete(db, city_id)
     if not success:
-        raise HTTPException(status_code=404, detail="城市不存在")
+        raise BizException(ErrorCode.CITY_NOT_FOUND)
     return ResponseModel(message="删除成功")
 
 
@@ -243,7 +245,7 @@ async def create_holiday_config(
 ):
     """创建节假日配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     holiday = await holiday_config_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=holiday)
 
@@ -257,10 +259,10 @@ async def update_holiday_config(
 ):
     """更新节假日配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     holiday = await holiday_config_service.update(db, holiday_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not holiday:
-        raise HTTPException(status_code=404, detail="节假日配置不存在")
+        raise BizException(ErrorCode.HOLIDAY_NOT_FOUND)
     return ResponseModel(data=holiday)
 
 
@@ -272,8 +274,8 @@ async def delete_holiday_config(
 ):
     """删除节假日配置（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     success = await holiday_config_service.delete(db, holiday_id)
     if not success:
-        raise HTTPException(status_code=404, detail="节假日配置不存在")
+        raise BizException(ErrorCode.HOLIDAY_NOT_FOUND)
     return ResponseModel(message="删除成功")

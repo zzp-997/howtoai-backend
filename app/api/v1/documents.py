@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.schemas import (
     DocumentCategoryCreate, DocumentCategoryResponse,
     DocumentCreate, DocumentResponse, ResponseModel
@@ -36,7 +38,7 @@ async def create_document_category(
 ):
     """创建文档分类（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     category = await document_category_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=category)
 
@@ -69,7 +71,7 @@ async def get_document(
     """获取文档详情"""
     document = await document_service.get_by_id(db, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="文档不存在")
+        raise BizException(ErrorCode.DOCUMENT_NOT_FOUND)
     return ResponseModel(data=document)
 
 
@@ -98,9 +100,9 @@ async def delete_document(
     """删除文档"""
     document = await document_service.get_by_id(db, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="文档不存在")
+        raise BizException(ErrorCode.DOCUMENT_NOT_FOUND)
     if document.upload_by != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.DOCUMENT_PERMISSION_DENIED)
 
     await document_service.delete(db, document_id)
     return ResponseModel(message="删除成功")

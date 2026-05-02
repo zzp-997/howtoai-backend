@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
 from app.schemas.common import ResponseModel
+from app.core.exceptions import BizException
 from app.core.redis_client import redis_client
 from app.core.security_module.rate_limit_middleware_fastapi import RateLimitMiddleware
 
@@ -38,6 +39,21 @@ def _build_cors_headers(request: Request) -> dict:
             "Vary": "Origin",
         }
     return {}
+
+
+@app.exception_handler(BizException)
+async def biz_exception_handler(request: Request, exc: BizException):
+    """处理业务异常 — HTTP 200 + body.code，前端统一走 transformRequestHook 处理"""
+    headers = _build_cors_headers(request)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "code": exc.code,
+            "message": exc.message,
+            "data": None
+        },
+        headers=headers,
+    )
 
 
 @app.exception_handler(HTTPException)

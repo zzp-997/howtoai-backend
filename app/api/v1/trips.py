@@ -1,7 +1,9 @@
 """
 差旅申请 API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
@@ -36,7 +38,7 @@ async def get_pending_trips(
 ):
     """获取待审批差旅申请（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     trips = await trip_service.find_pending(db)
     return ResponseModel(data=trips)
 
@@ -50,7 +52,7 @@ async def get_trip(
     """获取差旅申请详情"""
     trip = await trip_service.get_by_id(db, trip_id)
     if not trip:
-        raise HTTPException(status_code=404, detail="差旅申请不存在")
+        raise BizException(ErrorCode.TRIP_NOT_FOUND)
     return ResponseModel(data=trip)
 
 
@@ -75,11 +77,11 @@ async def update_trip(
     """更新差旅申请"""
     trip = await trip_service.get_by_id(db, trip_id)
     if not trip:
-        raise HTTPException(status_code=404, detail="差旅申请不存在")
+        raise BizException(ErrorCode.TRIP_NOT_FOUND)
     if trip.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if trip.status != "pending":
-        raise HTTPException(status_code=400, detail="只能修改待审批的申请")
+        raise BizException(ErrorCode.TRIP_STATUS_INVALID)
 
     updated = await trip_service.update(db, trip_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
@@ -94,11 +96,11 @@ async def approve_trip(
 ):
     """审批差旅申请（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     trip = await trip_service.approve(db, trip_id, data.approved, data.comment, current_user.id)
     if not trip:
-        raise HTTPException(status_code=404, detail="差旅申请不存在")
+        raise BizException(ErrorCode.TRIP_NOT_FOUND)
     return ResponseModel(data=trip)
 
 
@@ -111,11 +113,11 @@ async def delete_trip(
     """删除差旅申请"""
     trip = await trip_service.get_by_id(db, trip_id)
     if not trip:
-        raise HTTPException(status_code=404, detail="差旅申请不存在")
+        raise BizException(ErrorCode.TRIP_NOT_FOUND)
     if trip.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if trip.status == "approved":
-        raise HTTPException(status_code=400, detail="已通过的申请不能删除")
+        raise BizException(ErrorCode.TRIP_STATUS_INVALID, "已通过的申请不能删除")
 
     await trip_service.delete(db, trip_id)
     return ResponseModel(message="删除成功")

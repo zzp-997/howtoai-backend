@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from app.schemas import (
     MeetingRoomCreate, MeetingRoomUpdate, MeetingRoomResponse, ResponseModel
 )
@@ -41,7 +43,7 @@ async def get_meeting_room(
     """获取会议室详情"""
     room = await meeting_room_service.get_by_id(db, room_id)
     if not room:
-        raise HTTPException(status_code=404, detail="会议室不存在")
+        raise BizException(ErrorCode.ROOM_NOT_FOUND)
     return ResponseModel(data=room)
 
 
@@ -53,7 +55,7 @@ async def create_meeting_room(
 ):
     """创建会议室（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     room = await meeting_room_service.create(db, data.model_dump(by_alias=False))
     return ResponseModel(data=room)
 
@@ -67,10 +69,10 @@ async def update_meeting_room(
 ):
     """更新会议室（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     room = await meeting_room_service.update(db, room_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not room:
-        raise HTTPException(status_code=404, detail="会议室不存在")
+        raise BizException(ErrorCode.ROOM_NOT_FOUND)
     return ResponseModel(data=room)
 
 
@@ -82,8 +84,8 @@ async def delete_meeting_room(
 ):
     """删除会议室（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     success = await meeting_room_service.delete(db, room_id)
     if not success:
-        raise HTTPException(status_code=404, detail="会议室不存在")
+        raise BizException(ErrorCode.ROOM_NOT_FOUND)
     return ResponseModel(message="删除成功")

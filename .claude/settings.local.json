@@ -47,7 +47,11 @@
       "Bash(git check-ignore:*)",
       "Bash(echo \"exit code: $?\")",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat ~/.claude/projects/F--NOW-Project-ai-howtoai-backend/memory/*.md)",
+      "Bash(docker compose:*)",
+      "Read(//f/NOW_Project/ai/**)",
+      "Bash(dir ..)"
     ]
   }
 }

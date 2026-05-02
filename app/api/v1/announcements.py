@@ -1,7 +1,9 @@
 """
 公告通知 API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
@@ -56,7 +58,7 @@ async def get_announcement(
     """获取公告详情"""
     announcement = await announcement_service.get_by_id(db, announcement_id)
     if not announcement:
-        raise HTTPException(status_code=404, detail="公告不存在")
+        raise BizException(ErrorCode.ANNOUNCEMENT_NOT_FOUND)
 
     # 标记已读
     await announcement_service.mark_as_read(db, announcement_id, current_user.id)
@@ -82,7 +84,7 @@ async def create_announcement(
 ):
     """创建公告（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     from datetime import datetime
     announcement = await announcement_service.create(db, {
@@ -101,11 +103,11 @@ async def update_announcement(
 ):
     """更新公告（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     announcement = await announcement_service.update(db, announcement_id, data.model_dump(exclude_unset=True, by_alias=False))
     if not announcement:
-        raise HTTPException(status_code=404, detail="公告不存在")
+        raise BizException(ErrorCode.ANNOUNCEMENT_NOT_FOUND)
     return ResponseModel(data=announcement)
 
 
@@ -117,9 +119,9 @@ async def delete_announcement(
 ):
     """删除公告（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     success = await announcement_service.delete(db, announcement_id)
     if not success:
-        raise HTTPException(status_code=404, detail="公告不存在")
+        raise BizException(ErrorCode.ANNOUNCEMENT_NOT_FOUND)
     return ResponseModel(message="删除成功")

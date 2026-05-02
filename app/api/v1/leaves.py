@@ -1,7 +1,9 @@
 """
 请假申请 API
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
@@ -36,7 +38,7 @@ async def get_pending_leaves(
 ):
     """获取待审批请假申请（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     leaves = await leave_service.find_pending(db)
     return ResponseModel(data=leaves)
 
@@ -50,7 +52,7 @@ async def get_leave(
     """获取请假申请详情"""
     leave = await leave_service.get_by_id(db, leave_id)
     if not leave:
-        raise HTTPException(status_code=404, detail="请假申请不存在")
+        raise BizException(ErrorCode.LEAVE_NOT_FOUND)
     return ResponseModel(data=leave)
 
 
@@ -64,7 +66,7 @@ async def create_leave(
     # 检查日期重叠
     overlap = await leave_service.check_overlap(db, current_user.id, data.start_date, data.end_date)
     if overlap:
-        raise HTTPException(status_code=400, detail=f"日期与已存在的请假申请重叠")
+        raise BizException(ErrorCode.LEAVE_DATE_CONFLICT)
 
     leave = await leave_service.create(db, {**data.model_dump(by_alias=False), "user_id": current_user.id})
     return ResponseModel(data=leave)
@@ -80,18 +82,18 @@ async def update_leave(
     """更新请假申请"""
     leave = await leave_service.get_by_id(db, leave_id)
     if not leave:
-        raise HTTPException(status_code=404, detail="请假申请不存在")
+        raise BizException(ErrorCode.LEAVE_NOT_FOUND)
     if leave.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if leave.status != "pending":
-        raise HTTPException(status_code=400, detail="只能修改待审批的申请")
+        raise BizException(ErrorCode.LEAVE_STATUS_INVALID)
 
     # 检查日期重叠
     start = data.start_date or leave.start_date
     end = data.end_date or leave.end_date
     overlap = await leave_service.check_overlap(db, current_user.id, start, end, leave_id)
     if overlap:
-        raise HTTPException(status_code=400, detail="日期与已存在的请假申请重叠")
+        raise BizException(ErrorCode.LEAVE_DATE_CONFLICT)
 
     updated = await leave_service.update(db, leave_id, data.model_dump(exclude_unset=True, by_alias=False))
     return ResponseModel(data=updated)
@@ -106,11 +108,11 @@ async def approve_leave(
 ):
     """审批请假申请（管理员）"""
     if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
 
     leave = await leave_service.approve(db, leave_id, data.approved, data.comment, current_user.id)
     if not leave:
-        raise HTTPException(status_code=404, detail="请假申请不存在")
+        raise BizException(ErrorCode.LEAVE_NOT_FOUND)
     return ResponseModel(data=leave)
 
 
@@ -123,11 +125,11 @@ async def delete_leave(
     """删除请假申请"""
     leave = await leave_service.get_by_id(db, leave_id)
     if not leave:
-        raise HTTPException(status_code=404, detail="请假申请不存在")
+        raise BizException(ErrorCode.LEAVE_NOT_FOUND)
     if leave.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="无权限")
+        raise BizException(ErrorCode.PERMISSION_DENIED)
     if leave.status == "approved":
-        raise HTTPException(status_code=400, detail="已通过的申请不能删除")
+        raise BizException(ErrorCode.LEAVE_STATUS_INVALID, "已通过的申请不能删除")
 
     await leave_service.delete(db, leave_id)
     return ResponseModel(message="删除成功")

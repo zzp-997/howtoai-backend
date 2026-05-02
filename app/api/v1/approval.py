@@ -1,7 +1,9 @@
 """
 审批模块 API
 """
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
+from app.core.exceptions import BizException
+from app.core.error_codes import ErrorCode
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from app.core.database import get_db
@@ -44,7 +46,7 @@ async def create_chain(
         )
         return ResponseModel(code=200, message="创建成功", data=chain)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 @router.get("/chains", response_model=ResponseModel[List[ApprovalChainResponse]])
@@ -91,7 +93,7 @@ async def get_chain(
     """获取审批链详情"""
     chain = await approval_service.get_chain(db, chain_id, include_nodes=True)
     if not chain:
-        raise HTTPException(status_code=404, detail="审批链不存在")
+        raise BizException(ErrorCode.APPROVAL_CHAIN_NOT_FOUND)
     return ResponseModel(code=200, message="success", data=chain)
 
 
@@ -105,7 +107,7 @@ async def update_chain(
     """更新审批链"""
     chain = await approval_service.update_chain(db, chain_id, chain_data)
     if not chain:
-        raise HTTPException(status_code=404, detail="审批链不存在")
+        raise BizException(ErrorCode.APPROVAL_CHAIN_NOT_FOUND)
     return ResponseModel(code=200, message="更新成功", data=chain)
 
 
@@ -119,10 +121,10 @@ async def delete_chain(
     try:
         success = await approval_service.delete_chain(db, chain_id)
         if not success:
-            raise HTTPException(status_code=404, detail="审批链不存在")
+            raise BizException(ErrorCode.APPROVAL_CHAIN_NOT_FOUND)
         return ResponseModel(code=200, message="删除成功", data=None)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 # ========== 审批申请 ==========
@@ -148,7 +150,7 @@ async def submit_request(
         )
         return ResponseModel(code=200, message="提交成功", data=approval_request)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 @router.get("/requests", response_model=ResponseModel)
@@ -265,7 +267,7 @@ async def get_request(
         db, request_id, include_chain=True, include_records=True
     )
     if not approval_request:
-        raise HTTPException(status_code=404, detail="申请不存在")
+        raise BizException(ErrorCode.APPROVAL_NOT_FOUND)
     return ResponseModel(code=200, message="success", data=approval_request)
 
 
@@ -291,7 +293,7 @@ async def approve_request(
         )
         return ResponseModel(code=200, message="审批通过", data=approval_request)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 @router.post("/requests/{request_id}/reject", response_model=ResponseModel[ApprovalRequestResponse])
@@ -314,7 +316,7 @@ async def reject_request(
         )
         return ResponseModel(code=200, message="审批拒绝", data=approval_request)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 @router.post("/requests/batch-approve", response_model=ResponseModel)
@@ -355,7 +357,7 @@ async def remind_request(
         reminder = await approval_service.create_reminder(db, request_id, current_user.id)
         return ResponseModel(code=200, message="催办成功", data=reminder)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BizException(ErrorCode.APPROVAL_OPERATION_FAILED, str(e))
 
 
 @router.get("/requests/{request_id}/records", response_model=ResponseModel[List[ApprovalRecordResponse]])
