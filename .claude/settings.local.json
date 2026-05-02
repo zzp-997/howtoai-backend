@@ -18,7 +18,29 @@
       "Bash(tasklist *)",
       "Bash(wmic process *)",
       "Bash(taskkill *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(python -m pip install -r requirements.txt)",
+      "Bash(where python:*)",
+      "Bash(powershell:*)",
+      "Bash(cmd:*)",
+      "Bash(export PATH=\"/c/Users/Administrator/AppData/Local/Python/pythoncore-3.14-64:$PATH\")",
+      "Bash(python:*)",
+      "Bash(pip index:*)",
+      "Bash(pip show:*)",
+      "Bash(which openspec:*)",
+      "Bash(where openspec:*)",
+      "Bash(npm list:*)",
+      "Bash(openspec new:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions:*)",
+      "Bash(PYTHONUTF8=1 python run.py)",
+      "Bash(PYTHONIOENCODING=utf-8 timeout 10 python run.py)",
+      "Bash(pkill -f \"python run.py\")",
+      "Bash(where docker:*)",
+      "Bash(net start:*)",
+      "Bash(docker-compose up:*)",
+      "Read(//c/Program Files/Docker/Docker/**)",
+      "Read(//c/Program Files/Docker/**)"
     ]
   }
 }
